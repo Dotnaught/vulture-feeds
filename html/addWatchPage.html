@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+         <link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
+        <title>Add Page To Watch</title>
+        
+    </head>
+    <body>
+    	<div class='container'>
+	        <form>
+	        	<div>
+	        		<label>Enter valid URL:</label>
+	        		<input type="text" id="page" autofocus>
+
+	        	</div>
+                <div>
+                    <label>Select mode for tracking changes:</label>
+                </div>
+                <div>
+                     <input name="selector" type="radio" id="diff" value="diff" checked />
+                     <label for="diff">Diff</label><br>
+                      <input name="selector" type="radio" id="links" value="links" />
+                     <label for="links">Links</label><br>
+                    
+                </div>
+                <div>
+                    <p>&nbsp;</p>
+                </div>
+	        	<button class="btn waves-effect waves-light" type="submit">Add URL</button>
+	        </form>
+        </div>
+        <script src="../js/hammerjs.js" onload="window.Hammer = module.exports;"></script>
+        <script src="../js/addWatchPage.js" type="text/javascript"></script>
+        <script type="text/javascript" src="../js/materialize.min.js"></script>
+    </body>
+</html>
