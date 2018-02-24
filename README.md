@@ -10,6 +10,8 @@ For its initial release, the app includes two main functions: RSS/Atom feed aggr
 
 Webpage monitoring is done by comparing hashes of the network response to a request for the page. While hash comparison is easy to implement it's not the optimal approach because even the smallest change will be detected. Monitoring a specific page element is more reliable but also more brittle, requiring code changes if the page structure is revised.
 
+<img alt="vulture-feeds-screenshot" src="https://user-images.githubusercontent.com/429084/36622694-90e4dd1a-18b3-11e8-9076-e1e344f825ab.png" style="max-width:100%;">
+
 ### Prerequisites
 
 To build vulture-feeds, Node.js is required. It's been tested with v8.9.1.
