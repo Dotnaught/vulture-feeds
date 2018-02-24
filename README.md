@@ -31,7 +31,7 @@ npm install
 npm start
 ```
 
-The app comes with some default feeds. Add more via Files > Add Feed.
+The app should present a blank page on startup. It comes with some default feeds, which can be loaded via Files > Load Defaults. Or add feeds individually via Files > Add Feed.
 
 ## Deployment
 
