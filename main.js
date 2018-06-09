@@ -22,7 +22,7 @@ const { parse} = require('tldjs'); //for parsing domain names
 //set ENV production or development
 process.env.NODE_ENV = 'development';
 //set debug flag
-process.env.DEBUG=electron-builder 
+process.env.DEBUG='electron-builder';
 
 const log = require('electron-log');
 //~/Library/Logs/vulture_feeds/log.log
