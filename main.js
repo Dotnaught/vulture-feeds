@@ -21,6 +21,13 @@ const { parse} = require('tldjs'); //for parsing domain names
 
 //set ENV production or development
 process.env.NODE_ENV = 'development';
+//set debug flag
+process.env.DEBUG=electron-builder 
+
+const log = require('electron-log');
+//~/Library/Logs/vulture_feeds/log.log
+
+const autoUpdater = require("electron-updater").autoUpdater;
 
 const dialog = electron.dialog;
 
@@ -69,8 +76,23 @@ app.on ('ready', function(){
 	const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
 	//insert menu
 	Menu.setApplicationMenu(mainMenu);
-	
+	//check for updates
+	if (process.env.NODE_ENV !== 'development') {
+		autoUpdater.checkForUpdates();
+	}
 });
+//https://github.com/electron-userland/electron-builder/blob/master/docs/encapsulated%20manual%20update%20via%20menu.js
+// when the update has been downloaded and is ready to be installed, notify the BrowserWindow
+autoUpdater.on('update-downloaded', (info) => {
+	console.log("updateReady");
+	mainWindow.webContents.send('updateReady')
+});
+
+// when receiving a quitAndInstall signal, quit and install the new version ;)
+ipcMain.on("quitAndInstall", (event, arg) => {
+	console.log("quitAndInstall");
+	autoUpdater.quitAndInstall();
+})
 
 function exportDB() {
   dialog.showOpenDialog(mainWindow, {
@@ -504,7 +526,7 @@ function getFeed(theFeed, timeWindow){
 	});
 
 }
-
+//exports.test = () => console.log('Export works correctly');
 // Make method externaly visible
 exports.processFeeds = arg => {  
     

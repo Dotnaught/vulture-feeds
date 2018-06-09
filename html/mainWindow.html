@@ -44,7 +44,18 @@
        <script src="../js/hammerjs.js" onload="window.Hammer = module.exports;"></script>
         <script type="text/javascript" src="../js/materialize.min.js"></script>
         <script src="../js/mainWindow.js" type="text/javascript"></script>
-
+        <script>
+            //const ipcRenderer = require('electron').ipcRenderer;
+            // wait for an updateReady message
+            ipcRenderer.on('updateReady', function(event, text) {
+                // changes the text of the button
+                var container = document.getElementById('ready');
+                container.innerHTML = "Update Ready!";
+            })
+        </script>
+        Version: <span id="version">v1.0.0</span>
+        <!-- the button onClick sends a quitAndInstall message to the electron main process -->
+        <button id="ready" onClick="ipcRenderer.send('quitAndInstall')">No Updates Ready</button>
     </body>
 </html>
 <!--

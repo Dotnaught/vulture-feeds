@@ -5,7 +5,7 @@ const table = document.querySelector('table');
 
 const shell = require('electron').shell;
 const main = remote.require("./main.js");
-
+//main.test();
 const db = require('../js/mydatabase');
 const Config = require('electron-config');
 const config = new Config();

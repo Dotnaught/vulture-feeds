@@ -1,5 +1,6 @@
 node_modules
 release-builds
+dist
 env.json
 .DS_Store
 Thumbs.db
@@ -8,6 +9,9 @@ Thumbs.db
 workspace.js
 *.dmg
 *.yml
+.vscode
+.env
+.npm
 vfdb.json
 
 
