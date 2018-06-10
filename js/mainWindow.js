@@ -10,7 +10,7 @@ const db = require('../js/mydatabase');
 const Config = require('electron-config');
 const config = new Config();
 const fs = require("fs");
-
+const version = require('../package').version;
 const dialog = require('electron').remote.dialog 
 
 const { parse } = require('tldjs');
