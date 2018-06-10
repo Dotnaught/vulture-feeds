@@ -28,6 +28,8 @@ const log = require('electron-log');
 //~/Library/Logs/vulture_feeds/log.log
 
 const autoUpdater = require("electron-updater").autoUpdater;
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "info"
 
 const dialog = electron.dialog;
 
@@ -79,8 +81,15 @@ app.on ('ready', function(){
 	//check for updates
 	if (process.env.NODE_ENV !== 'development') {
 		autoUpdater.checkForUpdates();
+	} else {
+		console.log(process.env.NODE_ENV);
+		autoUpdater.checkForUpdates();
 	}
 });
+
+autoUpdater.on('update-not-available', (info) => {
+	console.log("update-not-available");
+})
 //https://github.com/electron-userland/electron-builder/blob/master/docs/encapsulated%20manual%20update%20via%20menu.js
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
 autoUpdater.on('update-downloaded', (info) => {
