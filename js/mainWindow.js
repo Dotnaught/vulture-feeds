@@ -57,6 +57,7 @@ function setter(val){
 function toggleProgressBar(bstate){
     let bar = document.getElementsByClassName("determinate")[0] || document.getElementsByClassName("indeterminate")[0];
     bar.className = bstate;
+    //console.log(bstate);
 }
 
 //do this when the window has loaded
@@ -107,6 +108,7 @@ function setup(){
 
 
 ipcRenderer.on('stop', function(){
+    console.log('stop handler');
     toggleProgressBar("determinate");
 });
 

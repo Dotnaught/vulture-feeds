@@ -83,7 +83,7 @@ app.on ('ready', function(){
 		autoUpdater.checkForUpdates();
 	} else {
 		console.log(process.env.NODE_ENV);
-		autoUpdater.checkForUpdates();
+		//autoUpdater.checkForUpdates();
 	}
 });
 
@@ -423,13 +423,14 @@ function isHTML(str) {
 }
 
 //fetch feeds
-function getFeed(theFeed, timeWindow){
+function getFeed(theFeed, timeWindow, callback){
 	
 	const req = request(theFeed);
 	const feedparser = new FeedParser();
 
 	req.on('error', function (error) {
-	  // handle any request errors
+		// handle any request errors
+		callback(error);
 	  console.log('>error: ' + error);
 	  //mainWindow.webContents.send('item:removeFeed', theFeed);
 	});
@@ -449,7 +450,8 @@ function getFeed(theFeed, timeWindow){
 	});
 
 	feedparser.on('error', function (error) {
-	  // always handle errors
+		// always handle errors
+		callback(error);
 	  console.log(error, error.stack);
 	  console.log("error here " + theFeed);
 	  //process.exit(1);
@@ -531,6 +533,7 @@ function getFeed(theFeed, timeWindow){
 	});
 
 	feedparser.on('end', () => {
+		callback();
 	  //console.log('End parsing ' + theFeed);
 	});
 
@@ -540,20 +543,27 @@ function getFeed(theFeed, timeWindow){
 exports.processFeeds = arg => {  
     
     global.showFeedsList.defaultFeedsList = [];
-
+		let counter = 0;
     for (var i = 0; i < arg.length; i++){
     	//add rssLink to array
     	global.showFeedsList.defaultFeedsList.push(arg[i].rssLink);
-
+			
     	if (arg[i].visible) {
     	//TODO: check if online: https://www.npmjs.com/package/is-online
     	//get articles from rss feed
-    	getFeed(arg[i].rssLink, global.timeWindow.minutes);
+    	getFeed(arg[i].rssLink, global.timeWindow.minutes, function(error){
+				counter++;
+				console.log("A feed fetched", error);
+				if (arg.length === counter){
+					mainWindow.webContents.send('stop', true);
+					console.log('Done');
+				}
+			});
     	}
     }
     
     //to stop progress bar, which doesn't work
-    mainWindow.webContents.send('stop', true);
+    //mainWindow.webContents.send('stop', true);
 }
 
 exports.processPages = arg => {
