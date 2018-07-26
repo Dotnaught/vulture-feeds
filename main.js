@@ -553,7 +553,6 @@ exports.processFeeds = arg => {
     	//get articles from rss feed
     	getFeed(arg[i].rssLink, global.timeWindow.minutes, function(error){
 				counter++;
-				console.log("A feed fetched", error);
 				if (arg.length === counter){
 					mainWindow.webContents.send('stop', true);
 					console.log('Done');
