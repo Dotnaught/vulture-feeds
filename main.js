@@ -112,7 +112,7 @@ function exportDB() {
   	if (filepath === undefined) return;
   	
   	let fullpath = filepath + '/vfdb.json'
-  	if (fs.lstatSync(fullpath).isFile()) {
+  	if (fs.existsSync(fullpath)) {
   		
   		dialog.showMessageBox({
                 type: 'info',
