@@ -227,8 +227,16 @@ ipcRenderer.on('defaults', function(){
     }
 
 //build mainWindow table via main.js/getFeed
-ipcRenderer.on('item:add', function(e, item){
-
+ipcRenderer.on('item:add', function(e, item, filter){
+    if(item.filterList){
+        if (item.title.toUpperCase().indexOf(item.filterList.toUpperCase()) !== -1){
+            console.log("Found " + item.filterList + " in " + item.title);
+        } else {
+            console.log("Didn't find " + item.filterList + " in " + item.title);
+            return
+        }
+    }
+    
     if (item.lastChecked) {console.log("lastChecked")};
     const tr = document.createElement('tr');
     tr.style.whiteSpace = 'nowrap';
@@ -368,16 +376,16 @@ ipcRenderer.on('item:dbclear', function(){
 
 
 //receive addFeed item from addWindow, via main.js
-ipcRenderer.on('item:addFeed', function(e, item){
+ipcRenderer.on('item:addFeed', function(e, item, filter){
     //TODO: error check item for proper RSS format
-    console.log("addFeed");
+    console.log("addFeed", filter);
     
     let recentLinks
     db.transaction('rw', db.urls, function*() {
         if ((yield db.urls.where('rssLink').equals(item).count()) === 0) {
         //add rssLink to db
         console.log("Add " + item + " to db");
-        let id = yield db.urls.add({rssLink: item, timeChecked: Date.now(), visible: 1});
+        let id = yield db.urls.add({rssLink: item, timeChecked: Date.now(), visible: 1, filterList: filter});
         //alert (`I added url with id ${id}`);
         recentLinks = yield db.urls.where("timeChecked").below(Date.now()).toArray();
        

@@ -7,5 +7,6 @@ form.addEventListener('submit', submitForm);
 function submitForm(e){
 	e.preventDefault();
 	const item = document.querySelector('#item').value;
-	ipcRenderer.send('item:addFeed', item);
+	const filter = document.querySelector('#filterTerms').value;
+	ipcRenderer.send('item:addFeed', item, filter);
 }

@@ -138,7 +138,7 @@ function importDB(){
     filters: [{name: 'JSON', extensions: ['json']}]
   }, function (filepath){
   	//todo show error dialog
-  	if (!fs.lstatSync(filepath[0]).isFile() || filepath[0].indexOf('vfdb.json') === -1) return;
+  	if (!fs.existsSync(filepath[0]) || filepath[0].indexOf('vfdb.json') === -1) return;
   	
   	let importFile = filepath[0];
   	mainWindow.webContents.send('import', importFile);
@@ -148,9 +148,10 @@ function importDB(){
 
 //handle createAddWindow
 function createAddWindow(){
+	let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
 	addWindow = new BrowserWindow({
-		width: 300,
-		height: 200,
+		width: width/2,
+		height: 300,
 		title: 'Add News List Item'
 	});
 	//load html
@@ -167,8 +168,9 @@ function createAddWindow(){
 
 //handle createAddWatchPage
 function createAddWatchPageWindow(){
+	let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
 	addWatchPageWindow = new BrowserWindow({
-		width: 300,
+		width: width/2,
 		height: 300,
 		title: 'Add URL'
 	});
@@ -222,12 +224,12 @@ function createPageWindow(){
 	});
 }
 
-//triggered from ipcRenderer in addWindow
-ipcMain.on('item:addFeed', function(e, item){
+//triggered from ipcRenderer in addWindow.js
+ipcMain.on('item:addFeed', function(e, item, filter){
 	let obj = parse(item);
 
 	if (obj.isValid && obj.tldExists && obj.domain){
-		mainWindow.webContents.send('item:addFeed', item);
+		mainWindow.webContents.send('item:addFeed', item, filter);
 	} else {
 		console.log("Not working");
 		mainWindow.webContents.executeJavaScript("alert('That feed does not work.');");
@@ -423,11 +425,11 @@ function isHTML(str) {
 }
 
 //fetch feeds
-function getFeed(theFeed, timeWindow, callback){
+function getFeed(theFeed, timeWindow, flist, callback){
 	
 	const req = request(theFeed);
 	const feedparser = new FeedParser();
-
+	console.log("flist " + flist);
 	req.on('error', function (error) {
 		// handle any request errors
 		callback(error);
@@ -473,8 +475,9 @@ function getFeed(theFeed, timeWindow, callback){
 	    } 
 	 	
 	    item.revisedLink = item.link;
-	    item.sourceLink = theFeed;
-	    
+			item.sourceLink = theFeed;
+			item.filterList = flist;
+	    console.log(item.filterList);
 	    let altURLs = [...getUrls(item.description)]; //set to array
 
 	    //reddit sets are size 3
@@ -523,7 +526,7 @@ function getFeed(theFeed, timeWindow, callback){
 	  	let hoursAgo = moment(published).fromNow();
 	  	item.hoursAgo = hoursAgo;
 	    
-	    
+	  //filter here  
 		//list stories 12 hours old or less
 	    if (parseInt(item.published) <= timeWindow) {
 	    	//send each article object to mainWindow
@@ -543,26 +546,31 @@ function getFeed(theFeed, timeWindow, callback){
 exports.processFeeds = arg => {  
     
     global.showFeedsList.defaultFeedsList = [];
-		let counter = 0;
+		let counter = 1;
+
     for (var i = 0; i < arg.length; i++){
     	//add rssLink to array
-    	global.showFeedsList.defaultFeedsList.push(arg[i].rssLink);
+			global.showFeedsList.defaultFeedsList.push(arg[i].rssLink);
+
+			let flist = "";
+			if (arg[i].filterList && arg[i].filterList.length > 0){
+				flist = arg[i].filterList;
+			}
 			
     	if (arg[i].visible) {
     	//TODO: check if online: https://www.npmjs.com/package/is-online
     	//get articles from rss feed
-    	getFeed(arg[i].rssLink, global.timeWindow.minutes, function(error){
-				counter++;
-				if (arg.length === counter){
-					mainWindow.webContents.send('stop', true);
-					console.log('Done');
-				}
-			});
+				getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function(error){
+					counter++;
+					if (arg.length === counter){
+						mainWindow.webContents.send('stop', true);
+						console.log('Done');
+					} else {
+						console.log(arg.length, counter);
+					}
+				});
     	}
     }
-    
-    //to stop progress bar, which doesn't work
-    //mainWindow.webContents.send('stop', true);
 }
 
 exports.processPages = arg => {

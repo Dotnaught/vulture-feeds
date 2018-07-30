@@ -54,9 +54,19 @@ for (var i = 0; i < feedList.length; i++){
 
     //The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
     if (feedList[i].visible){
-    	a.insertAdjacentHTML('afterend', `<div class="switch"><label>Off<input id="s${i}" type="checkbox" checked><span class="lever"></span>On</label><label style="margin-left:2.5em" for="colorWell${i}">Color:</label><input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}"></div>`);
+        a.insertAdjacentHTML('afterend', `<div class="switch">
+        <label>Off<input id="s${i}" type="checkbox" checked><span class="lever"></span>On</label>
+        <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
+        <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
+        <label style="margin-left:2.5em" for="filter${i}">Filter:</label>
+        <input style="margin-left:0.5em" id="filter${i}" type="text" value="" placeholder="Filter terms" onchange="updateFilterTerms(this.value, ${feedList[i].id}, this)">
+        </div>`);
 	} else {
-		a.insertAdjacentHTML('afterend', `<div class="switch"><label>Off<input id="s${i}" type="checkbox"><span class="lever"></span>On</label><label style="margin-left:2.5em" for="colorWell${i}">Color:</label><input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}"></div>`);	
+        a.insertAdjacentHTML('afterend', `<div class="switch">
+        <label>Off<input id="s${i}" type="checkbox"><span class="lever"></span>On</label>
+        <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
+        <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
+        </div>`);	
 	}
     //get ID of db entry, use checked or unchecked as appropriate
     let switchIndex = "s" + i;
@@ -94,6 +104,18 @@ for (var i = 0; i < feedList.length; i++){
     }, false);
 
 };
+
+function updateFilterTerms(val, id, el){
+    
+    db.transaction('rw', db.urls, function*() {
+        yield db.urls.where('id').equals(id).modify({filterList: val});
+    }).then ( () => { 
+        el.value = "";
+        el.placeholder = val;
+    }).catch(e => {
+        console.error (e.stack);
+    });
+}
 
 
 function deleteItem(feed){
