@@ -546,7 +546,7 @@ function getFeed(theFeed, timeWindow, flist, callback){
 exports.processFeeds = arg => {  
     
     global.showFeedsList.defaultFeedsList = [];
-		let counter = 1;
+		let counter = 0;
 
     for (var i = 0; i < arg.length; i++){
     	//add rssLink to array
@@ -564,12 +564,14 @@ exports.processFeeds = arg => {
 					counter++;
 					if (arg.length === counter){
 						mainWindow.webContents.send('stop', true);
-						console.log('Done');
+						console.log('Done', arg.length, counter);
 					} else {
 						console.log(arg.length, counter);
 					}
 				});
-    	}
+    	} else {
+				counter++;
+			}
     }
 }
 

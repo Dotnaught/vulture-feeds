@@ -51,6 +51,12 @@ for (var i = 0; i < feedList.length; i++){
     let trimmedColorObj = colorObj.domain;
     let colorKey = trimmedColorObj.replace(/\./g, "");
     let setColor = config.get(colorKey, defaultColor);
+    let placeholderFilterTerms 
+    if (feedList[i].filterList){
+        placeholderFilterTerms = "Filter for &quot;" + feedList[i].filterList + "&quot; or enter new terms.";
+    } else {
+        placeholderFilterTerms = "Show all items or enter filter terms.";
+    }
 
     //The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
     if (feedList[i].visible){
@@ -59,13 +65,15 @@ for (var i = 0; i < feedList.length; i++){
         <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
         <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
         <label style="margin-left:2.5em" for="filter${i}">Filter:</label>
-        <input style="margin-left:0.5em" id="filter${i}" type="text" value="" placeholder="Filter terms" onchange="updateFilterTerms(this.value, ${feedList[i].id}, this)">
+        <input style="margin-left:0.5em" id="filter${i}" type="text" value="" placeholder="${placeholderFilterTerms}" onchange="updateFilterTerms(this.value, ${feedList[i].id}, this)">
         </div>`);
 	} else {
         a.insertAdjacentHTML('afterend', `<div class="switch">
         <label>Off<input id="s${i}" type="checkbox"><span class="lever"></span>On</label>
         <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
         <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
+        <label style="margin-left:2.5em" for="filter${i}">Filter:</label>
+        <input style="margin-left:0.5em" id="filter${i}" type="text" value="" placeholder="${placeholderFilterTerms}" onchange="updateFilterTerms(this.value, ${feedList[i].id}, this)">
         </div>`);	
 	}
     //get ID of db entry, use checked or unchecked as appropriate

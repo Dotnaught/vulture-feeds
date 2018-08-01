@@ -228,12 +228,15 @@ ipcRenderer.on('defaults', function(){
 
 //build mainWindow table via main.js/getFeed
 ipcRenderer.on('item:add', function(e, item, filter){
+    let filteredOrNot = '';
+
     if(item.filterList){
         if (item.title.toUpperCase().indexOf(item.filterList.toUpperCase()) !== -1){
             console.log("Found " + item.filterList + " in " + item.title);
+            //don't alter default visibility
         } else {
             console.log("Didn't find " + item.filterList + " in " + item.title);
-            return
+            let filteredOrNot = 'none';
         }
     }
     
@@ -242,6 +245,7 @@ ipcRenderer.on('item:add', function(e, item, filter){
     tr.style.whiteSpace = 'nowrap';
     tr.style.overflow = 'hidden';
     tr.style.textOverflow = 'ellipsis';
+    tr.style.display = filteredOrNot;
 
     const td0 = document.createElement('td');
     td0.style.width = '15%';
@@ -477,42 +481,68 @@ function removeItem(e){
 }
 
 
-
 function sortTable() {
-  let theTable, rows, switching, i, x, y, shouldSwitch;
-  theTable = document.getElementById("myTable");
-  switching = true;
-  document.getElementById("Sort").parentNode.className = "active";
-  toggleProgressBar("indeterminate");
-  /*Make a loop that will continue until
-  no switching has been done:*/
-  while (switching) {
-    //start by saying: no switching is done:
-    switching = false;
-    rows = theTable.getElementsByTagName("TR");
-    /*Start at index zero since there's no header row*/
-    for (i = 0; i < (rows.length - 1); i++) {
-      //start by saying there should be no switching:
-      shouldSwitch = false;
-      /*Get the two elements you want to compare,
-      one from current row and one from the next:*/
-      x = rows[i].getElementsByTagName("TD")[0];
-      y = rows[i + 1].getElementsByTagName("TD")[0];
-      
-      if (parseInt(x.id) > parseInt(y.id)) {
-        //if so, mark as a switch and break the loop:
-        shouldSwitch= true;
-        break;
+    let theTable, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    theTable = document.getElementById("myTable");
+    switching = true;
+    document.getElementById("Sort").parentNode.className = "active";
+    toggleProgressBar("indeterminate");
+    // Set the sorting direction to ascending:
+    dir = "asc"; 
+    /* Make a loop that will continue until
+    no switching has been done: */
+    while (switching) {
+      // Start by saying: no switching is done:
+      switching = false;
+      rows = theTable.getElementsByTagName("TR");
+      /* Loop through all table rows (except the
+      first, which contains table headers): */
+      for (i = 0; i < (rows.length - 1); i++) {
+        // Start by saying there should be no switching:
+        shouldSwitch = false;
+        /* Get the two elements you want to compare,
+        one from current row and one from the next: */
+        x = rows[i].getElementsByTagName("TD")[0];
+        y = rows[i + 1].getElementsByTagName("TD")[0];
+        /* Check if the two rows should switch place,
+        based on the direction, asc or desc: */
+        if (dir === "asc") {
+          if (parseInt(x.id) > parseInt(y.id)) {
+            // If so, mark as a switch and break the loop:
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir === "desc") {
+          if (parseInt(x.id) < parseInt(y.id)){
+            // If so, mark as a switch and break the loop:
+            shouldSwitch = true;
+            break;
+          }
+        }
       }
+      if (shouldSwitch) {
+        /* If a switch has been marked, make the switch
+        and mark that a switch has been done: */
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        // Each time a switch is done, increase this count by 1:
+        switchcount ++; 
+      } else {
+        /* If no switching has been done AND the direction is "asc",
+        set the direction to "desc" and run the while loop again. */
+        if (switchcount === 0 && dir === "asc") {
+          dir = "desc";
+          switching = true;
+        }
+      }
+      
+      if (switchcount > rows.length*1000) {
+        console.log("Timed out");
+        console.log(switchcount, rows.length);
+          break;
+        }
     }
-    if (shouldSwitch) {
-      /*If a switch has been marked, make the switch
-      and mark that a switch has been done:*/
-      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-      switching = true;
-    }
+    toggleProgressBar("determinate");
+    Materialize.toast('Done', 1000);
+    console.log(switchcount, rows.length);
   }
-  toggleProgressBar("determinate");
-  Materialize.toast('Done', 1000);
-}
-
