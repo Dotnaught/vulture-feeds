@@ -53,9 +53,9 @@ for (var i = 0; i < feedList.length; i++){
     let setColor = config.get(colorKey, defaultColor);
     let placeholderFilterTerms 
     if (feedList[i].filterList){
-        placeholderFilterTerms = "Filter for &quot;" + feedList[i].filterList + "&quot; or enter new terms.";
+        placeholderFilterTerms = "Now filtering for &quot;" + feedList[i].filterList + "&quot;. You may enter new terms or &quot;*&quot; to clear.";
     } else {
-        placeholderFilterTerms = "Show all items or enter filter terms.";
+        placeholderFilterTerms = "Now showing all items. You may enter filter terms.";
     }
 
     //The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
@@ -114,12 +114,22 @@ for (var i = 0; i < feedList.length; i++){
 };
 
 function updateFilterTerms(val, id, el){
+
+    if (val === "*"){
+        console.log("Get rid of filter term");
+        val = "";
+    }
     
     db.transaction('rw', db.urls, function*() {
         yield db.urls.where('id').equals(id).modify({filterList: val});
     }).then ( () => { 
         el.value = "";
-        el.placeholder = val;
+        if (val===""){
+            el.placeholder = "Now showing all items. You may enter filter terms.";
+        } else {
+            el.placeholder = `Now filtering for "${val}". You may enter new terms or "*" to clear.`;
+        }
+        ipcRenderer.send('reload:mainWindow');
     }).catch(e => {
         console.error (e.stack);
     });

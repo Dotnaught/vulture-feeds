@@ -171,7 +171,7 @@ function createAddWatchPageWindow(){
 	let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
 	addWatchPageWindow = new BrowserWindow({
 		width: width/2,
-		height: 300,
+		height: 400,
 		title: 'Add URL'
 	});
 	//load html
@@ -188,8 +188,9 @@ function createAddWatchPageWindow(){
 
 //handle createFeedWindow
 function createFeedWindow(){
+	let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
 	feedWindow = new BrowserWindow({
-		width: 400,
+		width: width/2,
 		height: 400,
 		title: 'Feed List'
 	});
@@ -207,8 +208,9 @@ function createFeedWindow(){
 
 //handle createPageWindow
 function createPageWindow(){
+	let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
 	pageWindow = new BrowserWindow({
-		width: 400,
+		width: width/2,
 		height: 400,
 		title: 'Page List'
 	});
@@ -564,9 +566,9 @@ exports.processFeeds = arg => {
 					counter++;
 					if (arg.length === counter){
 						mainWindow.webContents.send('stop', true);
-						console.log('Done', arg.length, counter);
+						console.log(`Finished: ${counter} out of ${arg.length} feeds`);
 					} else {
-						console.log(arg.length, counter);
+						console.log(`${counter} out of ${arg.length} feeds`);
 					}
 				});
     	} else {
@@ -777,8 +779,13 @@ if (process.platform === 'darwin') {
       role: 'minimize'
     },
     {
-      label: 'Zoom',
-      role: 'zoom'
+      role: 'zoomin'
+		},
+		{
+      role: 'zoomout'
+		},
+		{
+      role: 'resetzoom'
     },
     {
       type: 'separator'

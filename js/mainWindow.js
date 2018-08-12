@@ -56,7 +56,7 @@ function setter(val){
 function searchFunction() {
     let input, filter, tr, td, i;
     input = document.getElementById("query");
-    console.log(input.value);
+    //console.log(input.value);
     filter = input.value.toUpperCase();
     //table = document.getElementById("myTable");
     tr = table.getElementsByTagName("tr");
@@ -231,12 +231,11 @@ ipcRenderer.on('item:add', function(e, item, filter){
     let filteredOrNot = '';
 
     if(item.filterList){
-        if (item.title.toUpperCase().indexOf(item.filterList.toUpperCase()) !== -1){
-            console.log("Found " + item.filterList + " in " + item.title);
-            //don't alter default visibility
-        } else {
-            console.log("Didn't find " + item.filterList + " in " + item.title);
-            let filteredOrNot = 'none';
+        if (item.title.toUpperCase().indexOf(item.filterList.toUpperCase()) === -1){
+            //console.log("Didn't find " + item.filterList + " in " + item.title);
+            //so don't display it
+            filteredOrNot = 'none';
+            return;
         }
     }
     
@@ -544,5 +543,6 @@ function sortTable() {
     }
     toggleProgressBar("determinate");
     Materialize.toast('Done', 1000);
+    document.getElementById("Sort").parentNode.className = "";
     console.log(switchcount, rows.length);
   }
