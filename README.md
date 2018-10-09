@@ -8,7 +8,7 @@ The app has been setup to ingest some sources that require customization, becaus
 
 Initially, the app included two main functions: RSS/Atom feed aggregation and webpage monitoring. As of version 1.0.3, it also supports keyword search filtering on displayed article links (to show fewer fetched links) and on article links prior to display (as a way of keeping feeds with lots of entries manageable).
 
-The former filtering capability is available through the Search box at the top of the main page. The latter can be set from the File > Show Feeds menu and was intended for use on US court feeds, so a specific case case can be followed while others are ignored and not loaded.
+The former filtering capability is available through the Search box at the top of the main page. The latter can be set from the File > Show Feeds menu and was intended for use on US court feeds, so a specific case can be followed while others are ignored and not loaded.
 
 Webpage monitoring is done by comparing hashes of the network response to a request for the page. While hash comparison is easy to implement it's not the optimal approach because even the smallest change will be detected. Monitoring a specific page element is more reliable but also more brittle, requiring code changes if the page structure is revised.
 
