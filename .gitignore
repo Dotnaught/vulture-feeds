@@ -13,6 +13,7 @@ workspace.js
 .env
 .npm
 vfdb.json
+.python-version
 
 
 
