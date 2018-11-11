@@ -33,23 +33,26 @@
   "author": "Thomas Claburn",
   "license": "MIT",
   "dependencies": {
-    "ajv": "^6.5.3",
+    "ajv": "^6.5.5",
     "checksum": "^0.1.1",
     "cheerio": "^1.0.0-rc.2",
     "dexie": "^2.0.4",
-    "electron-config": "^1.0.0",
+    "electron-config": "^2.0.0",
+    "electron-eslint": "^3.12.2",
     "electron-log": "^2.2.17",
-    "electron-updater": "^3.1.1",
+    "electron-updater": "^3.2.3",
+    "eslint-config-standard": "^12.0.0",
     "feedparser": "^2.2.9",
-    "get-urls": "^7.2.0",
-    "materialize-css": "^0.100.2",
+    "get-urls": "^8.0.0",
+    "materialize-css": "^1.0.0",
     "moment": "^2.22.2",
+    "prettier": "^1.15.2",
     "request": "^2.88.0",
     "tldjs": "^2.3.0"
   },
   "devDependencies": {
-    "electron": "^2.0.8",
-    "electron-builder": "^20.28.2",
+    "electron": "^3.0.8",
+    "electron-builder": "^20.34.0",
     "electron-installer-dmg": "^2.0.0"
   },
   "repository": {

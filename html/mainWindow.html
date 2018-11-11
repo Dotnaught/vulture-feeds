@@ -25,8 +25,8 @@
             <a href="javascript:void(0)" class="brand-logo right">vulture-feeds</a>
             <ul id="nav-mobile" class="left" style="height:64px"> <!--override element height to match nav-wrapper-->
 
-             <li><a id="Sort" href="#" onclick="sortTable()">Sort</a></li>
-             <li><a id="Time" class="dropdown-button" href="javascript:void(0)" data-activates="dropdown1">24 hours<i class="material-icons right">arrow_drop_down</i></a></li>
+             <li><a id="Sort" class="waves-effect waves-light btn-small" href="#" onclick="sortTable()">Sort</a></li>
+             <li><a id="Time" class="dropdown-trigger btn" href="javascript:void(0)" data-target='dropdown1'>24 hours<i class="material-icons right">arrow_drop_down</i></a></li>
              <li><input placeholder="Search" id="query" type="text" class="validate" onkeyup="searchFunction()"></li>
              <li><a id="ready" href="#" onclick="ipcRenderer.send('quitAndInstall')" style="visibility:hidden">No Updates Ready</a></li>
              
