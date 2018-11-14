@@ -39,9 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
   let elems = document.querySelectorAll('.dropdown-trigger');
   let options = { "hover": false }
   let instances = M.Dropdown.init(elems, options);
-
-
-
 });
 
 

@@ -1,26 +1,28 @@
 const electron = require('electron');
-const {ipcRenderer, remote} = electron;
+
+const { ipcRenderer, remote } = electron;
 const ul = document.querySelector('ul');
-const db = require('../js/mydatabase');
 
 const Config = require('electron-config');
+
 const config = new Config();
 
-const {parse} = require('tldjs');
+const { parse } = require('tldjs');
+const db = require('../js/mydatabase');
 
 console.log(remote.getGlobal('pdb').db);
-let pageList = remote.getGlobal('pdb').db;
+const pageList = remote.getGlobal('pdb').db;
 
 let colorWell;
 const defaultColor = '#039be5';
 
-for (var i = 0; i < pageList.length; i++) {
-  console.log('id = ' + pageList[i].id);
+for (let i = 0; i < pageList.length; i++) {
+  console.log(`id = ${pageList[i].id}`);
 
   if (remote.getGlobal('pdb').db[i].visible) {
-    console.log('Visible ' + remote.getGlobal('pdb').db[i].visible);
+    console.log(`Visible ${remote.getGlobal('pdb').db[i].visible}`);
   } else {
-    console.log('Not visible ' + remote.getGlobal('pdb').db[i].visible);
+    console.log(`Not visible ${remote.getGlobal('pdb').db[i].visible}`);
   }
 
   ul.className = 'collection';
@@ -34,25 +36,25 @@ for (var i = 0; i < pageList.length; i++) {
   a.setAttribute('id', pageList[i].id);
   a.setAttribute('href', '#');
 
-  a.addEventListener('click', function() {
-    console.log('Trying to delete page ' + this.innerHTML);
-    //remove from db
+  a.addEventListener('click', function () {
+    console.log(`Trying to delete page ${this.innerHTML}`);
+    // remove from db
     console.log(this.href);
-    let thisFeed = this.id; //this.innerHTML;
+    const thisFeed = this.id; // this.innerHTML;
     deletePage(thisFeed);
-    //remove from feedWindow
+    // remove from feedWindow
     this.parentNode.parentNode.removeChild(a.parentNode);
   });
 
   li.appendChild(a);
   ul.appendChild(li);
 
-  let colorObj = parse(pageList[i].url);
-  let trimmedColorObj = colorObj.domain;
-  let colorKey = trimmedColorObj.replace(/\./g, '');
-  let setColor = config.get(colorKey, defaultColor);
+  const colorObj = parse(pageList[i].url);
+  const trimmedColorObj = colorObj.domain;
+  const colorKey = trimmedColorObj.replace(/\./g, '');
+  const setColor = config.get(colorKey, defaultColor);
 
-  //The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
+  // The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
   if (pageList[i].visible) {
     a.insertAdjacentHTML(
       'afterend',
@@ -61,10 +63,8 @@ for (var i = 0; i < pageList.length; i++) {
        <span class="lever"></span>On</label>
        <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
        <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
-       <label style="margin-left:2.5em">Mode: ${
-          remote.getGlobal('pdb').db[i].mode
-       }</label>
-       </div>`
+       <label style="margin-left:2.5em">Mode: ${remote.getGlobal('pdb').db[i].mode}</label>
+       </div>`,
     );
   } else {
     a.insertAdjacentHTML(
@@ -74,52 +74,49 @@ for (var i = 0; i < pageList.length; i++) {
         <span class="lever"></span>On</label>
         <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
         <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
-        <label style="margin-left:2.5em">Mode: ${
-          remote.getGlobal('pdb').db[i].mode
-        }</label>
-        </div>`
+        <label style="margin-left:2.5em">Mode: ${remote.getGlobal('pdb').db[i].mode}</label>
+        </div>`,
     );
   }
-  //get ID of db entry, use checked or unchecked as appropriate
-  let switchIndex = 's' + i;
-  //console.log(switchIndex);
-  let lever = document.getElementById(switchIndex);
+  // get ID of db entry, use checked or unchecked as appropriate
+  const switchIndex = `s${i}`;
+  // console.log(switchIndex);
+  const lever = document.getElementById(switchIndex);
 
-  lever.addEventListener('change', function() {
-    //console.log(switchIndex + ' ' + this.checked);
-    //console.log(this.parentNode.parentNode.parentNode.firstChild.innerHTML);
-    let theURL = this.parentNode.parentNode.parentNode.firstChild.innerHTML;
-    let status = this.checked ? 1 : 0;
+  lever.addEventListener('change', function () {
+    // console.log(switchIndex + ' ' + this.checked);
+    // console.log(this.parentNode.parentNode.parentNode.firstChild.innerHTML);
+    const theURL = this.parentNode.parentNode.parentNode.firstChild.innerHTML;
+    const status = this.checked ? 1 : 0;
 
-    db.transaction('rw', db.pages, function*() {
+    db.transaction('rw', db.pages, function* () {
       yield db.pages
         .where('url')
         .equals(theURL)
-        .modify({visible: status});
+        .modify({ visible: status });
       ipcRenderer.send('reload:mainWindow');
-    }).catch(e => {
+    }).catch((e) => {
       console.error(e.stack);
     });
   });
 
-  let colorWellIndex = 'colorWell' + i;
-  let colorWell = document.getElementById(colorWellIndex);
+  const colorWellIndex = `colorWell${i}`;
+  const colorWell = document.getElementById(colorWellIndex);
 
   colorWell.addEventListener(
     'input',
-    function() {
-      let domainString =
-        event.target.parentNode.parentNode.firstChild.innerHTML;
-      let domainObj = parse(domainString);
-      let trimmedDomain = domainObj.domain;
-      let domainKey = trimmedDomain.replace(/\./g, '');
-      //domainKey += '_page'; //to distinguish watched pages from rss domains
+    () => {
+      const domainString = event.target.parentNode.parentNode.firstChild.innerHTML;
+      const domainObj = parse(domainString);
+      const trimmedDomain = domainObj.domain;
+      const domainKey = trimmedDomain.replace(/\./g, '');
+      // domainKey += '_page'; //to distinguish watched pages from rss domains
 
       config.set(domainKey, event.target.value);
-      //console.log ('set ' + domainKey + ' to ' + event.target.value);
+      // console.log ('set ' + domainKey + ' to ' + event.target.value);
       ipcRenderer.send('reload:mainWindow');
     },
-    false
+    false,
   );
 }
 
@@ -127,18 +124,18 @@ function deletePage(page) {
   console.log(page);
   console.log(typeof page);
   db.transaction('rw', db.pages, function* () {
-    var deleteCount = yield db.pages
+    const deleteCount = yield db.pages
       .where('id')
       .equals(parseInt(page))
       .delete();
 
-    console.log('Successfully deleted ' + deleteCount + ' page(s)');
-    //find link in array of objects
-    let index = remote.getGlobal('pdb').db.findIndex(x => x.id === parseInt(page));
-    let tempPageList = remote.getGlobal('pdb').db;
+    console.log(`Successfully deleted ${deleteCount} page(s)`);
+    // find link in array of objects
+    const index = remote.getGlobal('pdb').db.findIndex(x => x.id === parseInt(page));
+    const tempPageList = remote.getGlobal('pdb').db;
     tempPageList.splice(index, 1);
     remote.getGlobal('pdb').db = tempPageList;
-  }).catch(e => {
+  }).catch((e) => {
     console.error(e);
   });
 }

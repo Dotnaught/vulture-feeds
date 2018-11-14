@@ -41,6 +41,7 @@
     "electron-eslint": "^3.12.2",
     "electron-log": "^2.2.17",
     "electron-updater": "^3.2.3",
+    "eslint-config-airbnb": "^17.1.0",
     "eslint-config-standard": "^12.0.0",
     "feedparser": "^2.2.9",
     "get-urls": "^8.0.0",
@@ -53,7 +54,10 @@
   "devDependencies": {
     "electron": "^3.0.8",
     "electron-builder": "^20.34.0",
-    "electron-installer-dmg": "^2.0.0"
+    "electron-installer-dmg": "^2.0.0",
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
   },
   "repository": {
     "type": "git",
