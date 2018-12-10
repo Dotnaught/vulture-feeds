@@ -9,5 +9,10 @@ db.version(2).stores({
   urls: '++id,rssLink,timeChecked,visible,filterList',
   pages: '++id,url,timeChecked,hash,linkHash,mode,visible',
 });
+db.version(3).stores({
+  urls: '++id,rssLink,timeChecked,visible,filterList',
+  pages: '++id,url,timeChecked,hash,linkHash,mode,visible',
+  repos: '++id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
+});
 
 module.exports = db;

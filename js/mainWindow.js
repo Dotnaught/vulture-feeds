@@ -136,7 +136,7 @@ function setup() {
       main.processFeeds(recentLinks);
     }
   })
-    .then(() => {
+  .then(() => {
       //now handle watched pages
       checkWatchedPages();
     })

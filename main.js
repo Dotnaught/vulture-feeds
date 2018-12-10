@@ -16,8 +16,8 @@ let setTime = config.get('savedTime', defaultTime)
 
 const cheerio = require('cheerio')
 
-const {app, BrowserWindow, Menu, ipcMain} = electron
-const { parse} = require('tldjs') //for parsing domain names
+const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
+const {parse} = require('tldjs') //for parsing domain names
 
 //set ENV production or development
 process.env.NODE_ENV = 'development'
@@ -27,15 +27,40 @@ process.env.DEBUG='electron-builder'
 const log = require('electron-log')
 //~/Library/Logs/vulture_feeds/log.log
 
-const autoUpdater = require('electron-updater').autoUpdater
+const {autoUpdater} = require('electron-updater')
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
 
-const dialog = electron.dialog
+//const dialog = electron.dialog
+let repoList = [
+    {owner: 'octokit',repo : 'rest.js'}
+]
 
 const fs = require('fs')
+const octokit = require("@octokit/rest")({
+    timeout: 0,
+    headers: {
+      accept: "application/vnd.github.v3+json",
+      "user-agent": "octokit/rest.js v1.2.3"
+    },
+    baseUrl: "https://api.github.com"
+  });
 
-
+  octokit.issues.listForRepo({
+    owner: 'octokit',
+    repo: 'rest.js'
+  }).then(({data, headers, status}) => {
+    // handle data
+    for (var i = 0; i < data.length; i++){
+        console.log(data[i].comments)
+    }
+    
+  }).catch(e => console.log(e));
+//iterate over list of repos
+//iterate over list of open issues
+//compare comment count to last comment count
+//if a baseline exists and new value is significantly greater, surface issue thread
+//else update baseline
 
 
 //declare windows
@@ -60,9 +85,12 @@ global.timeWindow = {minutes : setTime} //24hours * 60 minutes, default on mainW
 //Listen for the app to be ready
 app.on ('ready', function(){
     const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
-
+    
     //create new window
-    mainWindow = new BrowserWindow({width, height})
+    mainWindow = new BrowserWindow({
+        width: width, 
+        height: height
+    })
     //load html
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'html/mainWindow.html'),
@@ -435,7 +463,7 @@ function getFeed(theFeed, timeWindow, flist, callback){
     req.on('error', function (error) {
         // handle any request errors
         callback(error)
-	  console.log('>error: ' + error)
+	  console.log('>error: ' + error + ' fetching ' + theFeed)
 	  //mainWindow.webContents.send('item:removeFeed', theFeed);
     })
 
@@ -815,3 +843,5 @@ if(process.env.NODE_ENV !== 'production'){
         ]
     })
 }
+
+
