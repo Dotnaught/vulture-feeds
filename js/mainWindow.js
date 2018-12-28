@@ -100,6 +100,22 @@ window.onload = () => {
   setup();
 };
 
+function checkRepos(){
+  db.transaction('r', db.repos, function* () {
+    yield db.repos
+      .where('timeChecked')
+      .below(Date.now())
+      .toArray(function (watchRepos) {
+        //console.log("Checking page database");
+        remote.getGlobal('rdb').db = watchRepos;
+        main.processRepos(watchRepos);
+      })
+      .catch(function (err) {
+        console.error(err);
+      });
+  });
+}
+
 function checkWatchedPages() {
   db.transaction('r', db.pages, function* () {
     yield db.pages
@@ -122,7 +138,7 @@ function setup() {
     //if ((yield db.urls.where('rssLink').equals('https://www.theregister.co.uk/headlines.atom').count()) === 0) {
 
     if ((yield db.urls.count()) === 0 && (yield db.pages.count()) === 0) {
-      Materialize.toast('Add Feeds or Watched Pages', 8000);
+      M.toast({ html: 'Add Feeds or Watched Pages', displayLength: 8000 });
     } else {
       // Query:
       //console.log("Checking feed database");
@@ -193,14 +209,15 @@ ipcRenderer.on('import', function (e, dirpath) {
       remote.getGlobal('fdb').db = recentLinks;
     })
       .then(() => {
-        Materialize.toast('vfdb.json imported', 4000);
+        M.toast({ html: 'vfdb.json imported', displayLength: 4000 });
+        
       })
       .catch(e => {
         console.error(e.stack);
       });
     //
   } else {
-    Materialize.toast('vfdb.json file not found', 4000);
+    M.toast({ html: 'vfdb.json file not found', displayLength: 4000 });
   }
 });
 
@@ -252,7 +269,7 @@ ipcRenderer.on('defaults', function () {
           timeChecked: Date.now(),
         },
         {
-          rssLink: 'http://export.arxiv.org/rss/cs/new',
+          rssLink: 'https://export.arxiv.org/rss/cs/new',
           visible: 1,
           timeChecked: Date.now(),
         },
@@ -458,7 +475,7 @@ ipcRenderer.on('item:dbclear', function () {
   remote.getGlobal('pdb').db = [];
   config.clear();
   table.innerHTML = '';
-  Materialize.toast('Feeds cleared', 4000);
+  M.toast({ html: 'Feeds cleared', displayLength: 4000 });
 
   //remote.getGlobal('showFeedsList').defaultFeedsList = [];
   //Materialize.toast('Feeds cleared', 4000)
@@ -506,6 +523,63 @@ ipcRenderer.on('item:addFeed', function (e, item, filter) {
       console.error(e.stack);
       alert('There was a problem with ' + item + " so it's been removed");
       deleteItem(item);
+    });
+});
+
+//receive addRepo from addRepo.js
+//+id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
+ipcRenderer.on('item:addRepo', function (e, repo, issue, timeChecked, issueCommentCount, repoCommentCount, now) {
+  //TODO: error check item for proper RSS format
+  console.log(
+    'addRepo received\n' +
+    repo +
+    '\nand\n' +
+    issue +
+    '\nand\n' +
+    timeChecked +
+    '\nand\n' +
+    issueCommentCount +
+    '\nand\n' +
+    repoCommentCount +
+    '\nand\n' +
+    now
+  );
+
+  db.transaction('rw', db.repos, function* () {
+    if (
+      (yield db.repos
+        .where('repo')
+        .equals(repo)
+        .count()) === 0
+    ) {
+      //add page to db
+      console.log('Add ' + repo + ' to db');
+      let id = yield db.repos.add({
+        repo: repo,
+        timeChecked: Date.now(),
+        issueCommentCount: issueCommentCount,
+        linkHash: linkHash,
+        repoCommentCount: repoCommentCount
+      });
+
+      let watchedRepos = yield db.repos
+        .where('timeChecked')
+        .below(Date.now())
+        .toArray();
+      console.log(watchedRepos.length);
+      //main.processFeeds(recentLinks);
+    } else {
+      alert('That page is already being watched');
+    }
+  })
+    .then(() => {
+      console.log('updating list: ' + repo);
+      //remote.getGlobal('showFeedsList').defaultFeedsList.push(item);
+      ipcRenderer.send('reload:mainWindow');
+    })
+    .catch(e => {
+      console.error(e.stack);
+      alert('There was a problem with ' + repo);
     });
 });
 

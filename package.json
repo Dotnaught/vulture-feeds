@@ -33,31 +33,35 @@
   "author": "Thomas Claburn",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^16.1.0",
-    "ajv": "^6.6.1",
+    "@octokit/rest": "^16.3.0",
+    "ajv": "^6.6.2",
     "checksum": "^0.1.1",
     "cheerio": "^1.0.0-rc.2",
     "dexie": "^2.0.4",
     "electron-config": "^2.0.0",
     "electron-log": "^2.2.17",
-    "electron-updater": "^3.2.3",
+    "electron-updater": "^4.0.6",
     "feedparser": "^2.2.9",
     "get-urls": "^8.0.0",
     "install": "^0.12.2",
     "materialize-css": "^1.0.0",
-    "moment": "^2.22.2",
-    "npm": "^6.4.1",
+    "moment": "^2.23.0",
+    "npm": "^6.5.0",
     "prettier": "^1.15.3",
     "request": "^2.88.0",
     "tldjs": "^2.3.0"
   },
   "devDependencies": {
-    "electron": "^3.0.10",
-    "electron-builder": "^20.38.2",
+    "electron": "^4.0.0",
+    "electron-builder": "^20.38.4",
     "electron-installer-dmg": "^2.0.0"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/Dotnaught/vulture-feeds.git"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Dotnaught/vulture-feeds/issues"
+  },
+  "homepage": "https://github.com/Dotnaught/vulture-feeds#readme"
 }

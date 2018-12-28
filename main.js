@@ -46,16 +46,7 @@ const octokit = require("@octokit/rest")({
     baseUrl: "https://api.github.com"
   });
 
-  octokit.issues.listForRepo({
-    owner: 'octokit',
-    repo: 'rest.js'
-  }).then(({data, headers, status}) => {
-    // handle data
-    for (var i = 0; i < data.length; i++){
-        console.log(data[i].comments)
-    }
-    
-  }).catch(e => console.log(e));
+
 //iterate over list of repos
 //iterate over list of open issues
 //compare comment count to last comment count
@@ -76,6 +67,9 @@ global.fdb = {
     db : []
 }
 global.pdb = {
+    db : []
+}
+global.rdb = {
     db : []
 }
 
@@ -214,6 +208,26 @@ function createAddWatchPageWindow(){
     })
 }
 
+//handle createAddRepo
+function createAddRepoWindow(){
+    let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
+    repoWindow = new BrowserWindow({
+        width: width/2,
+        height: 400,
+        title: 'Add URL'
+    })
+    //load html
+    repoWindow.loadURL(url.format({
+        pathname: path.join(__dirname, '/html/addRepo.html'),
+        protocol: 'file:',
+        slashes: true
+    }))
+    //garbage collection
+    repoWindow.on('close', function(){
+        addWatchPageWindow = null
+    })
+}
+
 //handle createFeedWindow
 function createFeedWindow(){
     let {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
@@ -253,6 +267,50 @@ function createPageWindow(){
         pageWindow = null
     })
 }
+
+//triggered from ipcRenderer in addRepo.js
+ipcMain.on('item:addRepo', function(e, item, filter){
+    //+id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
+    //to...check if repo is valid
+    let owner = item.split('/').slice(-2,-1).join('/'); 
+    let repo = item.split('/').slice(-1).join('/'); 
+    
+    console.log(o, r);
+    octokit.issues.listForRepo({
+        owner: owner,
+        repo: repo
+      }).then(({data, headers, status}) => {
+        // handle data
+        console.log(data)
+        let issueCommentCount = 0
+        let repoCommentCount = 0
+        let issue = 0
+        let timeChecked = 0
+
+        for (var i = 0; i < data.length; i++){
+            //console.log(data[i].comments)
+            
+            issueCommentCount = data[i].comments
+            repoCommentCount = 0
+            issue = data[i].number
+            timeChecked = Date.now()
+            
+            
+        }
+        
+      }).catch(e => console.log(e));
+
+/*     let obj = 2
+
+    if (obj === 1){
+        mainWindow.webContents.send('item:addRepo', item, filter)
+    } else {
+        console.log('Not working')
+        mainWindow.webContents.executeJavaScript('alert(\'That feed does not work.\');')
+    } */
+	
+    repoWindow.close()
+})
 
 //triggered from ipcRenderer in addWindow.js
 ipcMain.on('item:addFeed', function(e, item, filter){
@@ -456,14 +514,23 @@ function isHTML(str) {
 
 //fetch feeds
 function getFeed(theFeed, timeWindow, flist, callback){
-	
-    const req = request(theFeed)
+	const options ={
+        url: theFeed,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36',
+            'Connection': 'keep-alive'
+    }
+    }
+    const req = request(options)
+    //const req = request(theFeed)
     const feedparser = new FeedParser()
-    console.log('flist ' + flist)
+    
     req.on('error', function (error) {
         // handle any request errors
+        console.log('>error: ' + error + ' fetching ' + theFeed)
         callback(error)
-	  console.log('>error: ' + error + ' fetching ' + theFeed)
+	  
 	  //mainWindow.webContents.send('item:removeFeed', theFeed);
     })
 
@@ -483,9 +550,10 @@ function getFeed(theFeed, timeWindow, flist, callback){
 
     feedparser.on('error', function (error) {
         // always handle errors
+        console.log(error, error.stack)
+	    console.log('error here ' + theFeed)
         callback(error)
-	  console.log(error, error.stack)
-	  console.log('error here ' + theFeed)
+	  
 	  //process.exit(1);
 	  this.emit('end', error)
     })
@@ -507,7 +575,11 @@ function getFeed(theFeed, timeWindow, flist, callback){
 	    item.revisedLink = item.link
             item.sourceLink = theFeed
             item.filterList = flist
-	    console.log(item.filterList)
+        //console.log(item.filterList)
+        //console.log(item.revisedLink)
+        if (!item.description){
+            item.description = "No description"
+        }
 	    let altURLs = [...getUrls(item.description)] //set to array
 
 	    //reddit sets are size 3
@@ -592,7 +664,7 @@ exports.processFeeds = arg => {
     	//get articles from rss feed
             getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function(error){
                 counter++
-                if (arg.length === counter){
+                if (arg.length <= counter){
                     mainWindow.webContents.send('stop', true)
                     console.log(`Finished: ${counter} out of ${arg.length} feeds`)
                 } else {
@@ -601,6 +673,7 @@ exports.processFeeds = arg => {
             })
     	} else {
             counter++
+            console.log(arg[i].rssLink + ' not visible')
         }
     }
 }
@@ -611,6 +684,24 @@ exports.processPages = arg => {
         if (arg[i].visible) {
             getPage(arg[i])
         }
+    }
+
+}
+
+exports.processRepos = arg => {
+    for (var i = 0; i < arg.length; i++){
+        console.log(arg.length)
+        octokit.issues.listForRepo({
+            owner: 'octokit',
+            repo: 'rest.js'
+          }).then(({data, headers, status}) => {
+            // handle data
+            for (var i = 0; i < data.length; i++){
+                console.log(data[i].comments)
+            }
+            
+          }).catch(e => console.log(e));
+       
     }
 
 }
@@ -634,6 +725,13 @@ const mainMenuTemplate = [
             accelerator: 'CmdOrCtrl+W',
             click(){
                 createAddWatchPageWindow()
+            }
+        },
+        {
+            label: 'Add Repo',
+            accelerator: 'CmdOrCtrl+P',
+            click(){
+                createAddRepoWindow()
             }
         },
         {
@@ -726,7 +824,7 @@ const mainMenuTemplate = [
         submenu: [
             {
                 label: 'Learn More',
-                click () { require('electron').shell.openExternal('http://electron.atom.io') }
+                click () { require('electron').shell.openExternal('https://electron.atom.io') }
             }
         ]
     }

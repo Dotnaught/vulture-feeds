@@ -69,8 +69,8 @@ In electron-builder, this should not be necessary.
 ## Built With
 
 * [Electron](https://electronjs.org/) - Cross-platform app framework
-* [Dexie](http://dexie.org/) - IndexDB
-* [Materialize](http://materializecss.com/) - HTML/CSS design 
+* [Dexie](https://dexie.org/) - IndexDB
+* [Materialize](https://materializecss.com/) - HTML/CSS design 
 
 ## Notes
 
@@ -85,7 +85,3 @@ In electron-builder, this should not be necessary.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details
-
-## Acknowledgments
-
-* For introducing me to Electron: http://traversymedia.com/

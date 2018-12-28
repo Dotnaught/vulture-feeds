@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
+        <title>Add Repo To Watch</title>
+        
+    </head>
+    <body>
+            <div class='container'>
+        <form action="#">
+       
+
+              <form action="#">
+                    
+                    <p>
+	        		<label>Enter valid URL:</label>
+	        		<input type="text" id="repo" autofocus>
+                    </p>
+                    
+              
+                    <label>Select mode for tracking changes:</label>
+                    <br>
+                    <label for="diff">
+                     <input name="selector" type="radio" id="diff" value="diff" checked />
+                     <span>Diff</span>
+                    </label><br>
+                    <label for="links">
+                      <input name="selector" type="radio" id="links" value="links" />
+                     <span>Links</span>
+                    </label><br>
+                    
+                    <p>&nbsp;</p>
+                <button class="btn waves-effect waves-light" type="submit">Add URL</button>
+                
+	        </form>
+        </div>
+    
+        <!-- <script src="../js/hammerjs.js" onload="window.Hammer = module.exports;"></script> -->
+        <script src="../js/addRepo.js" type="text/javascript"></script>
+        <script type="text/javascript" src="../js/materialize.min.js"></script>
+        
+    </body>
+</html>
