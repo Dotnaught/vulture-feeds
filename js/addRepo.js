@@ -6,10 +6,10 @@ form.addEventListener('submit', submitForm);
 
 function submitForm(e) {
   e.preventDefault();
-  const repo = document.querySelector('#repo').value;
-  const mode = document.querySelector('input[name = "selector"]:checked').value;
+  const repoURL = document.querySelector('#repo').value;
+  const keywords = document.querySelector('#keywords').value;
 
   //send to main.js
-  //+id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
-  ipcRenderer.send('item:addRepo', repo, mode);
+  //+id,owner,repo
+  ipcRenderer.send('item:addRepo', repoURL, keywords); //mode
 }

@@ -269,46 +269,15 @@ function createPageWindow(){
 }
 
 //triggered from ipcRenderer in addRepo.js
-ipcMain.on('item:addRepo', function(e, item, filter){
-    //+id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
-    //to...check if repo is valid
-    let owner = item.split('/').slice(-2,-1).join('/'); 
-    let repo = item.split('/').slice(-1).join('/'); 
-    
-    console.log(o, r);
-    octokit.issues.listForRepo({
-        owner: owner,
-        repo: repo
-      }).then(({data, headers, status}) => {
-        // handle data
-        console.log(data)
-        let issueCommentCount = 0
-        let repoCommentCount = 0
-        let issue = 0
-        let timeChecked = 0
-
-        for (var i = 0; i < data.length; i++){
-            //console.log(data[i].comments)
-            
-            issueCommentCount = data[i].comments
-            repoCommentCount = 0
-            issue = data[i].number
-            timeChecked = Date.now()
-            
-            
-        }
-        
-      }).catch(e => console.log(e));
-
-/*     let obj = 2
-
-    if (obj === 1){
-        mainWindow.webContents.send('item:addRepo', item, filter)
+ipcMain.on('item:addRepo', function(e, repoURL, keywords){
+    if (repoURL){
+        let hash = 0
+        let linkHash = keywords //passkeywords via this unused variable
+        let mode = 'repo'
+        mainWindow.webContents.send('item:addRepo', repoURL, hash, linkHash, mode, Date.now())
     } else {
-        console.log('Not working')
-        mainWindow.webContents.executeJavaScript('alert(\'That feed does not work.\');')
-    } */
-	
+        mainWindow.webContents.executeJavaScript('alert(\'That repo does not work.\');')
+    }
     repoWindow.close()
 })
 
@@ -384,6 +353,72 @@ ipcMain.on('item:addPage', function(e, page, mode){
 ipcMain.on('reload:mainWindow', function(e){
     mainWindow.webContents.reloadIgnoringCache()
 })
+
+//
+function getRepo(pageObj){
+    //console.log('getRepo');
+
+    //request
+    let owner = pageObj.url.split('/').slice(-2,-1).join('/'); 
+    let repo = pageObj.url.split('/').slice(-1).join('/'); 
+    
+    console.log(owner, repo);
+    octokit.issues.listForRepo({
+        owner: owner,
+        repo: repo
+      }).then(({data, headers, status}) => {
+        // handle data
+        console.log(data)
+        
+
+        for (var i = 0; i < data.length; i++){
+            //console.log(data[i].comments)
+            
+            let keywords = typeof(pageObj.linkHash) == 'string' && pageObj.linkHash.length > 0 ? pageObj.linkHash.toLowerCase().split(' ') : false
+            let string =  data[i].body.toLowerCase()
+            let found = false
+            if (keywords){
+            // run the tests agains every element in the array
+            found = keywords.some(el => string.includes(el));
+            }
+            console.log('keywords: ' + keywords + '\nstring: ' + string)
+            if (found){
+
+                //update db.pages
+                    //spoof rss feed object to reuse table code
+                    let now = moment()
+                    let item = {}
+                    let published = now
+                    item.published = now.diff(published, 'minutes') // for sorting
+                    item.hoursAgo = moment(published).fromNow() // for display
+                    if (item.hoursAgo > now) {
+                        item.hoursAgo = now
+                    }
+                    item.revisedLink = data[i].html_url
+                    item.sourceLink = pageObj.url //github
+						
+                    item.title = '* '
+                    item.title += data[i].title.replace(/\W/g, '')
+                    //unique to pages, add to table code
+                    item.lastChecked = moment(pageObj.timeChecked).fromNow()
+                    item.changedText = ' keywords found.'
+					
+                    //add watched page info to table
+                    mainWindow.webContents.send('item:add', item)	
+                    //no need to update db since there's been no change
+            } 
+            
+            
+        }
+        
+     
+        //mainWindow.webContents.send('item:addRepo', repo, owner, foundList)
+      }).catch(e => console.log(e));
+    //end
+			
+}
+//
+
 
 function checkHashAndMode(newHash, oldHash, newLinkHash, oldLinkHash, mode) {
     if (mode === 'diff') {
@@ -681,7 +716,10 @@ exports.processFeeds = arg => {
 exports.processPages = arg => {
     for (var i = 0; i < arg.length; i++){
         //console.log(arg[i]);
-        if (arg[i].visible) {
+        if (arg[i].mode === 'repo'){
+            getRepo(arg[i])
+
+        } else if (arg[i].visible) {
             getPage(arg[i])
         }
     }
@@ -729,7 +767,7 @@ const mainMenuTemplate = [
         },
         {
             label: 'Add Repo',
-            accelerator: 'CmdOrCtrl+P',
+            accelerator: 'CmdOrCtrl+E',
             click(){
                 createAddRepoWindow()
             }
@@ -748,7 +786,7 @@ const mainMenuTemplate = [
             }
         },
         {
-            label: 'Show Watched Pages',
+            label: 'Show Watched Pages/Repos',
             accelerator: 'CmdOrCtrl+P',
             click(){
                 createPageWindow()

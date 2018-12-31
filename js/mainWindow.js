@@ -100,21 +100,7 @@ window.onload = () => {
   setup();
 };
 
-function checkRepos(){
-  db.transaction('r', db.repos, function* () {
-    yield db.repos
-      .where('timeChecked')
-      .below(Date.now())
-      .toArray(function (watchRepos) {
-        //console.log("Checking page database");
-        remote.getGlobal('rdb').db = watchRepos;
-        main.processRepos(watchRepos);
-      })
-      .catch(function (err) {
-        console.error(err);
-      });
-  });
-}
+
 
 function checkWatchedPages() {
   db.transaction('r', db.pages, function* () {
@@ -526,60 +512,59 @@ ipcRenderer.on('item:addFeed', function (e, item, filter) {
     });
 });
 
-//receive addRepo from addRepo.js
-//+id,owner,repo,issue,timeChecked,issueCommentCount,repoCommentCount'
-ipcRenderer.on('item:addRepo', function (e, repo, issue, timeChecked, issueCommentCount, repoCommentCount, now) {
+//receive addRepo from main.js, via addRepo.js
+ipcRenderer.on('item:addRepo', function (e, page, hash, linkHash, mode, now) {
   //TODO: error check item for proper RSS format
   console.log(
     'addRepo received\n' +
-    repo +
+    page +
     '\nand\n' +
-    issue +
+    hash +
     '\nand\n' +
-    timeChecked +
+    linkHash +
     '\nand\n' +
-    issueCommentCount +
     '\nand\n' +
-    repoCommentCount +
+    mode +
     '\nand\n' +
     now
   );
 
-  db.transaction('rw', db.repos, function* () {
+  db.transaction('rw', db.pages, function* () {
     if (
-      (yield db.repos
-        .where('repo')
-        .equals(repo)
+      (yield db.pages
+        .where('url')
+        .equals(page)
         .count()) === 0
     ) {
       //add page to db
-      console.log('Add ' + repo + ' to db');
-      let id = yield db.repos.add({
-        repo: repo,
+      console.log('Add ' + page + ' to db');
+      let id = yield db.pages.add({
+        url: page,
         timeChecked: Date.now(),
-        issueCommentCount: issueCommentCount,
+        hash: hash,
         linkHash: linkHash,
-        repoCommentCount: repoCommentCount
+        mode: mode,
+        visible: 1,
       });
 
-      let watchedRepos = yield db.repos
+      let watchedPages = yield db.pages
         .where('timeChecked')
         .below(Date.now())
         .toArray();
-      console.log(watchedRepos.length);
+      console.log(watchedPages.length);
       //main.processFeeds(recentLinks);
     } else {
       alert('That page is already being watched');
     }
   })
     .then(() => {
-      console.log('updating list: ' + repo);
+      console.log('updating list: ' + page);
       //remote.getGlobal('showFeedsList').defaultFeedsList.push(item);
       ipcRenderer.send('reload:mainWindow');
     })
     .catch(e => {
       console.error(e.stack);
-      alert('There was a problem with ' + repo);
+      alert('There was a problem with ' + page);
     });
 });
 
