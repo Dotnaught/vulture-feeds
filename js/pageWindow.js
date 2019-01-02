@@ -56,6 +56,7 @@ for (let i = 0; i < pageList.length; i++) {
 
   // The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
   if (pageList[i].visible) {
+    //a.insertAdjacentHTML('beforebegin', '<i class="tiny material-icons">delete</i>');
     a.insertAdjacentHTML(
       'afterend',
       `<div class="switch">

@@ -3,6 +3,23 @@ const { ipcRenderer, remote } = electron;
 const ul = document.querySelector('ul');
 const table = document.querySelector('table');
 
+
+const header = table.createTHead();
+const row = header.insertRow(0);
+const cell0 = row.insertCell(0);
+cell0.style.textAlign = 'center';
+cell0.style.backgroundColor = "#f06292";
+const cell1 = row.insertCell(1);
+cell1.style.textAlign = 'center';
+cell1.style.backgroundColor = "#f06292";
+const cell2 = row.insertCell(2);
+cell2.style.textAlign = 'center';
+cell2.style.backgroundColor = "#f06292";
+cell0.innerHTML = "Published";
+cell1.innerHTML = "Headline";
+cell2.innerHTML = "Source";
+
+
 const shell = require('electron').shell;
 const main = remote.require('./main.js');
 //main.test();

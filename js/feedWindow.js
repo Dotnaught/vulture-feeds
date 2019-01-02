@@ -62,6 +62,7 @@ for (var i = 0; i < feedList.length; i++) {
 
   //The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
   if (feedList[i].visible) {
+    //a.insertAdjacentHTML('beforebegin', '<i class="tiny material-icons">delete</i>');
     a.insertAdjacentHTML(
       'afterend',
       `<div class="switch">

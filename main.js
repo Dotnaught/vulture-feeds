@@ -69,9 +69,7 @@ global.fdb = {
 global.pdb = {
     db : []
 }
-global.rdb = {
-    db : []
-}
+
 
 global.timeWindow = {minutes : setTime} //24hours * 60 minutes, default on mainWindow.html
 
@@ -368,7 +366,7 @@ function getRepo(pageObj){
         repo: repo
       }).then(({data, headers, status}) => {
         // handle data
-        console.log(data)
+        //console.log(data)
         
 
         for (var i = 0; i < data.length; i++){
@@ -381,7 +379,7 @@ function getRepo(pageObj){
             // run the tests agains every element in the array
             found = keywords.some(el => string.includes(el));
             }
-            console.log('keywords: ' + keywords + '\nstring: ' + string)
+            //console.log('keywords: ' + keywords + '\nstring: ' + string)
             if (found){
 
                 //update db.pages
@@ -398,10 +396,10 @@ function getRepo(pageObj){
                     item.sourceLink = pageObj.url //github
 						
                     item.title = '* '
-                    item.title += data[i].title.replace(/\W/g, '')
+                    item.title += data[i].title.replace(/[^a-zA-Z 0-9]+/g,'')
                     //unique to pages, add to table code
                     item.lastChecked = moment(pageObj.timeChecked).fromNow()
-                    item.changedText = ' keywords found.'
+                    //item.changedText = ' keywords found.' -- not used for repos to preserve formatting
 					
                     //add watched page info to table
                     mainWindow.webContents.send('item:add', item)	
@@ -716,7 +714,7 @@ exports.processFeeds = arg => {
 exports.processPages = arg => {
     for (var i = 0; i < arg.length; i++){
         //console.log(arg[i]);
-        if (arg[i].mode === 'repo'){
+        if (arg[i].mode === 'repo' && arg[i].visible){
             getRepo(arg[i])
 
         } else if (arg[i].visible) {
@@ -726,23 +724,7 @@ exports.processPages = arg => {
 
 }
 
-exports.processRepos = arg => {
-    for (var i = 0; i < arg.length; i++){
-        console.log(arg.length)
-        octokit.issues.listForRepo({
-            owner: 'octokit',
-            repo: 'rest.js'
-          }).then(({data, headers, status}) => {
-            // handle data
-            for (var i = 0; i < data.length; i++){
-                console.log(data[i].comments)
-            }
-            
-          }).catch(e => console.log(e));
-       
-    }
 
-}
 
 
 
