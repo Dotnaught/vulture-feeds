@@ -16,7 +16,7 @@
     "make-installer": "electron-installer-dmg ./release-builds/vulture-feeds-darwin-x64/vulture-feeds.app vulture-feeds --overwrite"
   },
   "build": {
-    "appId": "com.lot49.vulturefeeds",
+    "appId": "com.lot49.vulture-feeds",
     "mac": {
       "category": "public.app-category.news"
     },
