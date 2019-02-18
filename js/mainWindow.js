@@ -3,18 +3,18 @@ const { ipcRenderer, remote } = electron;
 const ul = document.querySelector('ul');
 const table = document.querySelector('table');
 
-
+const headerBackgroundColor = "#c5cae9";
 const header = table.createTHead();
 const row = header.insertRow(0);
 const cell0 = row.insertCell(0);
 cell0.style.textAlign = 'center';
-cell0.style.backgroundColor = "#f06292";
+cell0.style.backgroundColor = headerBackgroundColor;
 const cell1 = row.insertCell(1);
 cell1.style.textAlign = 'center';
-cell1.style.backgroundColor = "#f06292";
+cell1.style.backgroundColor = headerBackgroundColor;
 const cell2 = row.insertCell(2);
 cell2.style.textAlign = 'center';
-cell2.style.backgroundColor = "#f06292";
+cell2.style.backgroundColor = headerBackgroundColor;
 cell0.innerHTML = "Published";
 cell1.innerHTML = "Headline";
 cell2.innerHTML = "Source";
@@ -80,6 +80,18 @@ function setter(val) {
   }
 }
 
+function displayCancelShow(){
+  let cancelButton = document.getElementById('Clear');
+  cancelButton.style.visibility = 'visible';
+}
+
+function displayCancelHide(){
+  let cancelButton = document.getElementById('Clear');
+  cancelButton.style.visibility = 'hidden';
+  document.getElementById('query').value = '';
+  searchFunction();
+}
+
 function searchFunction() {
   let input, filter, tr, td, i;
   input = document.getElementById('query');
@@ -87,7 +99,7 @@ function searchFunction() {
   filter = input.value.toUpperCase();
   //table = document.getElementById("myTable");
   tr = table.getElementsByTagName('tr');
-  for (i = 0; i < tr.length; i++) {
+  for (i = 1; i < tr.length; i++) {
     td = tr[i].getElementsByTagName('td')[1];
     if (td) {
       if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
@@ -382,9 +394,9 @@ ipcRenderer.on('item:add', function (e, item, filter) {
   if (item.foundAuthor) {
     a.title = item.foundAuthor;
   }
-  //get rid of arXiv headline junk & trim headline
-  let displayTitle = item.title.split('. (arXiv')[0].substring(0, 80);
-  if (displayTitle.length === 80) {
+  //get rid of arXiv headline junk & trim headline // trimming now handles in CSS for TD
+  let displayTitle = item.title.split('. (arXiv')[0].substring(0, 200);
+  if (displayTitle.length === 200) {
     displayTitle += '...';
   }
   const linkText = document.createTextNode(displayTitle);

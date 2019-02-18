@@ -13,4 +13,8 @@ table, th, td {
             padding-right: 6px;
             padding-top: 0px;
             padding-bottom: 0px;
+            max-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }

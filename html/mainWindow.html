@@ -28,7 +28,8 @@
 
              <li><a id="Sort" class="waves-effect waves-light btn-small" href="#" onclick="sortTable()">Sort</a></li>
              <li><a id="Time" class="dropdown-trigger btn" href="javascript:void(0)" data-target='dropdown1'>24 hours<i class="material-icons right">arrow_drop_down</i></a></li>
-             <li><input placeholder="Search" id="query" type="text" class="validate" onkeyup="searchFunction()"></li>
+             <li><input placeholder="Search" id="query" type="text" class="validate" onfocus="displayCancelShow()" onkeyup="searchFunction()" onblur="displayCancelHide()"></li>
+             <li><a id="Clear" class="waves-effect waves-light btn-small" href="#" onclick="displayCancelHide()" style="visibility:hidden">Clear</a></li>
              <li><a id="ready" href="#" onclick="ipcRenderer.send('quitAndInstall')" style="visibility:hidden">No Updates Ready</a></li>
              
             

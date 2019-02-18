@@ -33,8 +33,8 @@
   "author": "Thomas Claburn",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^16.3.0",
-    "ajv": "^6.6.2",
+    "@octokit/rest": "^16.15.0",
+    "ajv": "^6.9.1",
     "checksum": "^0.1.1",
     "cheerio": "^1.0.0-rc.2",
     "dexie": "^2.0.4",
@@ -45,15 +45,15 @@
     "get-urls": "^8.0.0",
     "install": "^0.12.2",
     "materialize-css": "^1.0.0",
-    "moment": "^2.23.0",
-    "npm": "^6.5.0",
-    "prettier": "^1.15.3",
+    "moment": "^2.24.0",
+    "npm": "^6.8.0",
+    "prettier": "^1.16.4",
     "request": "^2.88.0",
     "tldjs": "^2.3.0"
   },
   "devDependencies": {
-    "electron": "^4.0.0",
-    "electron-builder": "^20.38.4",
+    "electron": "^4.0.5",
+    "electron-builder": "^20.38.5",
     "electron-installer-dmg": "^2.0.0"
   },
   "repository": {

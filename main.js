@@ -25,11 +25,12 @@ process.env.NODE_ENV = 'development'
 process.env.DEBUG='electron-builder'
 
 const log = require('electron-log')
-//~/Library/Logs/vulture_feeds/log.log
+//~/Library/Logs/vulture-feeds/log.log
 
 const {autoUpdater} = require('electron-updater')
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
+log.info('App starting...')
 
 //const dialog = electron.dialog
 let repoList = [
@@ -37,15 +38,43 @@ let repoList = [
 ]
 
 const fs = require('fs')
-const octokit = require("@octokit/rest")({
-    timeout: 0,
-    headers: {
-      accept: "application/vnd.github.v3+json",
-      "user-agent": "octokit/rest.js v1.2.3"
-    },
-    baseUrl: "https://api.github.com"
-  });
 
+
+const Octokit = require('@octokit/rest')
+const octokit = new Octokit({
+  // see "Authentication" section below
+  auth: undefined,
+
+  // setting a user agent is required: https://developer.github.com/v3/#user-agent-required
+  // v1.2.3 will be current @octokit/rest version
+  userAgent: 'octokit/rest.js v1.2.3',
+
+  // add list of previews you’d like to enable globally,
+  // see https://developer.github.com/v3/previews/.
+  // Example: ['jean-grey-preview', 'symmetra-preview']
+  previews: [],
+
+  // set custom URL for on-premise GitHub Enterprise installations
+  baseUrl: 'https://api.github.com',
+  
+  // pass custom methods for debug, info, warn and error
+  log: {
+    debug: () => {},
+    info: () => {},
+    warn: console.warn,
+    error: console.error
+  },
+
+  request: {
+    // Node.js only: advanced request options can be passed as http(s) agent,
+    // such as custom SSL certificate or proxy settings.
+    // See https://nodejs.org/api/http.html#http_class_http_agent
+    agent: false,
+
+    // request timeout in ms. 0 means no timeout
+    timeout: 0
+  }
+})
 
 //iterate over list of repos
 //iterate over list of open issues
@@ -81,7 +110,10 @@ app.on ('ready', function(){
     //create new window
     mainWindow = new BrowserWindow({
         width: width, 
-        height: height
+        height: height,
+        webPreferences: {
+            nodeIntegration: true
+        }
     })
     //load html
     mainWindow.loadURL(url.format({
@@ -103,12 +135,12 @@ app.on ('ready', function(){
         autoUpdater.checkForUpdates()
     } else {
         console.log(process.env.NODE_ENV)
-        //autoUpdater.checkForUpdates();
     }
 })
 
 autoUpdater.on('update-not-available', (info) => {
     console.log('update-not-available')
+    mainWindow.webContents.send('updateReady')
 })
 //https://github.com/electron-userland/electron-builder/blob/master/docs/encapsulated%20manual%20update%20via%20menu.js
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
@@ -360,42 +392,45 @@ function getRepo(pageObj){
     let owner = pageObj.url.split('/').slice(-2,-1).join('/'); 
     let repo = pageObj.url.split('/').slice(-1).join('/'); 
     
-    console.log(owner, repo);
+    //console.log(owner, repo);
+    //octokit.issues.listCommentsForRepo({owner, repo, sort, direction, since}).then(result => {})
+    let now = moment();
+    let backthen = now.subtract(30, 'days').toISOString();
+    
+    //octokit.issues.listCommentsForRepo({
     octokit.issues.listForRepo({
         owner: owner,
-        repo: repo
-      }).then(({data, headers, status}) => {
+        repo: repo,
+        since: backthen
+      }).then(({data, status, headers }) => {
         // handle data
         //console.log(data)
         
 
         for (var i = 0; i < data.length; i++){
             //console.log(data[i].comments)
-            
-            let keywords = typeof(pageObj.linkHash) == 'string' && pageObj.linkHash.length > 0 ? pageObj.linkHash.toLowerCase().split(' ') : false
-            let string =  data[i].body.toLowerCase()
-            let found = false
-            if (keywords){
-            // run the tests agains every element in the array
-            found = keywords.some(el => string.includes(el));
-            }
+            //linkhash, used for watched pages, is used here to store keywords
+            let keywords = typeof(pageObj.linkHash) == 'string' && pageObj.linkHash.length > 0 ? pageObj.linkHash.toLowerCase().split(' ') : false;
+            let string =  data[i].body.toLowerCase();
+            let found = typeof(keywords) != 'object' ? keywords : keywords.some(el => string.includes(el));
+            let pullRequest = typeof(data[i].pull_request) == 'object' ? true : false; //just get comments, not PRs
             //console.log('keywords: ' + keywords + '\nstring: ' + string)
-            if (found){
-
+            if (keywords && found && !pullRequest || !keywords && !pullRequest){
+                //console.log(data[i].pull_request)
                 //update db.pages
                     //spoof rss feed object to reuse table code
                     let now = moment()
                     let item = {}
-                    let published = now
+                    let published = data[i].updated_at //now
                     item.published = now.diff(published, 'minutes') // for sorting
-                    item.hoursAgo = moment(published).fromNow() // for display
+                    item.hoursAgo = moment(published).fromNow() // for display, issue last updated
                     if (item.hoursAgo > now) {
                         item.hoursAgo = now
                     }
                     item.revisedLink = data[i].html_url
                     item.sourceLink = pageObj.url //github
 						
-                    item.title = '* '
+                    item.title = `[${data[i].comments} comments] `
                     item.title += data[i].title.replace(/[^a-zA-Z 0-9]+/g,'')
                     //unique to pages, add to table code
                     item.lastChecked = moment(pageObj.timeChecked).fromNow()
@@ -824,7 +859,17 @@ const mainMenuTemplate = [
             { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
             { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
             { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
-            { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' }
+            { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' },
+            {
+                label: 'Toggle Dev Tools',
+                accelerator: 'CmdOrCtrl+I',
+                click(item, focusedWindow){
+                    //check for focusedWindow, macOS Color Picker not part of DOM
+                    if (focusedWindow){
+                        focusedWindow.toggleDevTools()
+                    }
+                }
+            }
         ]},
     //window menu
     {
@@ -942,7 +987,7 @@ if (process.platform === 'darwin') {
         }
     ]
 }
-
+/*
 //add dev tools item if not in production
 if(process.env.NODE_ENV !== 'production'){
     mainMenuTemplate.push({
@@ -962,4 +1007,4 @@ if(process.env.NODE_ENV !== 'production'){
     })
 }
 
-
+*/
