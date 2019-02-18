@@ -14,7 +14,8 @@ workspace.js
 .npm
 vfdb.json
 .python-version
-.provisionprofile
+embedded.provisionprofile
+
 
 
 
