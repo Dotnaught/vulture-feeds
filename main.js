@@ -20,7 +20,7 @@ const {app, BrowserWindow, Menu, ipcMain, dialog} = electron
 const {parse} = require('tldjs') //for parsing domain names
 
 //set ENV production or development
-process.env.NODE_ENV = 'development'
+process.env.NODE_ENV = 'production'
 //set debug flag
 process.env.DEBUG='electron-builder'
 
