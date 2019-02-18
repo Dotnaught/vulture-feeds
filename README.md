@@ -6,17 +6,19 @@ Because I currently write for The Register, vulture-feeds is configured for find
 
 The app has been setup to ingest some sources that require customization, because RSS and ATOM implementations aren't uniform. At some point, it may include more of these. Feel free to customize it to meet your needs.
 
-Initially, the app included two main functions: RSS/Atom feed aggregation and webpage monitoring. As of version 1.0.3, it also supports keyword search filtering on displayed article links (to show fewer fetched links) and on article links prior to display (as a way of keeping feeds with lots of entries manageable).
+Initially, the app included two main functions: RSS/Atom feed aggregation and webpage monitoring. As of version 1.0.3, it also supports keyword search filtering on displayed article links (to show fewer fetched links) and on article links prior to display (as a way of keeping feeds with lots of entries manageable). 
 
 The former filtering capability is available through the Search box at the top of the main page. The latter can be set from the File > Show Feeds menu and was intended for use on US court feeds, so a specific case can be followed while others are ignored and not loaded.
 
 Webpage monitoring is done by comparing hashes of the network response to a request for the page. While hash comparison is easy to implement it's not the optimal approach because even the smallest change will be detected. Monitoring a specific page element is more reliable but also more brittle, requiring code changes if the page structure is revised.
 
+Version 1.0.4 introduced the ability to track GitHub repos. Version 1.0.5 adds some changes to the way repos are handled: It looks at the last 30 days of Issues posts in selected repos and surfaces either all Issues modified since then or those that include body text matching keywords set when the repo feed was added. There are probably better ways to approach this. Future revisions may change this further.
+
 <img alt="vulture-feeds-screenshot" src="https://user-images.githubusercontent.com/429084/36622694-90e4dd1a-18b3-11e8-9076-e1e344f825ab.png" style="max-width:100%;">
 
 ### Prerequisites
 
-To build vulture-feeds, Node.js is required. It's been tested with v8.9.1.
+To build vulture-feeds, Node.js is required. It's been tested with v10.15.0.
 
 ```
 Node.js
@@ -80,7 +82,7 @@ In electron-builder, this should not be necessary.
 
 ## Authors
 
-* **Thomas Claburn** - *Version 1.0.3* - [Dotnaught](https://github.com/Dotnaught)
+* **Thomas Claburn** - *Version 1.0.5* - [Dotnaught](https://github.com/Dotnaught)
 
 ## License
 
