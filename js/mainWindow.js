@@ -388,7 +388,7 @@ ipcRenderer.on('item:add', function (e, item, filter) {
   a.setAttribute('class', sourceKey);
   //a.setAttribute("onclick","shell.openExternal('"+item.revisedLink+"')");
   //a.setAttribute("onclick", "openLink('"+item.revisedLink+"')");
-  a.onclick = function () {
+  a.onmousedown = function () {
     openLink(item.revisedLink, a);
   };
   if (item.foundAuthor) {
