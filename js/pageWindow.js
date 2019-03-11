@@ -54,6 +54,11 @@ for (let i = 0; i < pageList.length; i++) {
   const colorKey = trimmedColorObj.replace(/\./g, '');
   const setColor = config.get(colorKey, defaultColor);
 
+  let filterKeyword = "None";
+  if (remote.getGlobal('pdb').db[i].hash === 0) {
+    //processing repo
+    filterKeyword = remote.getGlobal('pdb').db[i].linkHash;
+  }
   // The beforebegin and afterend positions work only if the node is in the DOM tree and has a parent element.
   if (pageList[i].visible) {
     //a.insertAdjacentHTML('beforebegin', '<i class="tiny material-icons">delete</i>');
@@ -65,6 +70,7 @@ for (let i = 0; i < pageList.length; i++) {
        <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
        <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
        <label style="margin-left:2.5em">Mode: ${remote.getGlobal('pdb').db[i].mode}</label>
+       <label style="margin-left:2.5em">Filter Keyword: ${filterKeyword}</label>
        </div>`,
     );
   } else {
@@ -76,6 +82,7 @@ for (let i = 0; i < pageList.length; i++) {
         <label style="margin-left:2.5em" for="colorWell${i}">Color:</label>
         <input style="margin-left:0.5em" id="colorWell${i}" type="color" value="${setColor}">
         <label style="margin-left:2.5em">Mode: ${remote.getGlobal('pdb').db[i].mode}</label>
+        <label style="margin-left:2.5em">Filter Keyword: ${filterKeyword}</label>
         </div>`,
     );
   }
