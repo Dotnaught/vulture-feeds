@@ -140,7 +140,7 @@ app.on ('ready', function(){
 
 autoUpdater.on('update-not-available', (info) => {
     console.log('update-not-available')
-    mainWindow.webContents.send('updateReady')
+    //mainWindow.webContents.send('updateReady')
 })
 //https://github.com/electron-userland/electron-builder/blob/master/docs/encapsulated%20manual%20update%20via%20menu.js
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
