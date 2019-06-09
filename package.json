@@ -16,8 +16,26 @@
     "make-installer": "electron-installer-dmg ./release-builds/vulture-feeds-darwin-x64/vulture-feeds.app vulture-feeds --overwrite"
   },
   "build": {
+    "afterSign": "scripts/notarize.js",
     "appId": "com.lot49.vulture-feeds",
     "mac": {
+      "category": "public.app-category.news",
+      "target": [
+        "pkg",
+        "dmg",
+        "zip",
+        "mas"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "type": "distribution",
+      "icon": "build/icon.icns"
+    },
+    "mas": {
+      "entitlements": "build/entitlements.mas.plist",
+      "type": "distribution",
       "category": "public.app-category.news"
     },
     "win": {
@@ -33,28 +51,34 @@
   "author": "Thomas Claburn",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^16.17.0",
+    "@octokit/rest": "^16.28.0",
     "ajv": "^6.10.0",
     "checksum": "^0.1.1",
-    "cheerio": "^1.0.0-rc.2",
+    "cheerio": "^1.0.0-rc.3",
     "dexie": "^2.0.4",
     "electron-config": "^2.0.0",
-    "electron-log": "^2.2.17",
+    "electron-log": "^3.0.6",
     "electron-updater": "^4.0.6",
     "feedparser": "^2.2.9",
-    "get-urls": "^8.0.0",
+    "fstream": "^1.0.12",
+    "get-urls": "^9.1.0",
     "install": "^0.12.2",
     "materialize-css": "^1.0.0",
     "moment": "^2.24.0",
+    "node-gyp": "^4.0.0",
     "npm": "^6.9.0",
-    "prettier": "^1.16.4",
     "request": "^2.88.0",
-    "tldjs": "^2.3.0"
+    "tldjs": "^2.3.1"
   },
   "devDependencies": {
-    "electron": "^4.0.8",
-    "electron-builder": "^20.38.5",
-    "electron-installer-dmg": "^2.0.0"
+    "electron": "^5.0.3",
+    "electron-builder": "^20.43.0",
+    "electron-installer-dmg": "^3.0.0",
+    "electron-notarize": "^0.1.1",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.18.2"
   },
   "repository": {
     "type": "git",

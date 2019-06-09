@@ -1,77 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        
-        <meta http-equiv="Content-Security-Policy" content="object-src 'none'">
-        <title>All the news that fits</title>
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-         <link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
-         <link type="text/css" rel="stylesheet" href="../css/styles.css"  media="screen,projection"/>
-    </head>
-    <body>
-      
-     <ul id="dropdown1" class="dropdown-content">
-        <li><a onclick="setter(72)" href="javascript:void(0)">72 hours</a></li>
-        <li><a onclick="setter(24)" href="javascript:void(0)">24 hours</a></li>
-        <li><a onclick="setter(12)" href="javascript:void(0)">12 hours</a></li>
-        <li><a onclick="setter(6)" href="javascript:void(0)">6 hours</a></li>
-        <li><a onclick="setter(3)" href="javascript:void(0)">3 hours</a></li>
-        <li><a onclick="setter(1)" href="javascript:void(0)">1 hour</a></li>
-      </ul>
-    
-       <nav>
-           <div class="nav-wrapper indigo input-field">
-            <a href="javascript:void(0)" class="brand-logo right">vulture-feeds</a>
-            <ul id="nav-mobile" class="left" style="height:64px"> <!--override element height to match nav-wrapper-->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
 
-             <li><a id="Sort" class="waves-effect waves-light btn-small" href="#" onclick="sortTable()">Sort</a></li>
-             <li><a id="Time" class="dropdown-trigger btn" href="javascript:void(0)" data-target='dropdown1'>24 hours<i class="material-icons right">arrow_drop_down</i></a></li>
-             <li><input placeholder="Search" id="query" type="text" class="validate" onfocus="displayCancelShow()" onkeyup="searchFunction()" onblur="displayCancelHide()"></li>
-             <li><a id="Clear" class="waves-effect waves-light btn-small" href="#" onclick="displayCancelHide()" style="visibility:hidden">Clear</a></li>
-             <li><a id="ready" href="#" onclick="ipcRenderer.send('quitAndInstall')" style="visibility:hidden">No Updates Ready</a></li>
-             
-            
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' app: 'unsafe-inline'; object-src 'self' app:;"
+    />
 
-            </ul>
+    <title>All the news that fits</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="../css/materialize.min.css"
+      media="screen,projection"
+    />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="../css/styles.css"
+      media="screen,projection"
+    />
+  </head>
+  <body>
+    <ul id="dropdown1" class="dropdown-content">
+      <li><a onclick="setter(72)" href="javascript:void(0)">72 hours</a></li>
+      <li><a onclick="setter(24)" href="javascript:void(0)">24 hours</a></li>
+      <li><a onclick="setter(12)" href="javascript:void(0)">12 hours</a></li>
+      <li><a onclick="setter(6)" href="javascript:void(0)">6 hours</a></li>
+      <li><a onclick="setter(3)" href="javascript:void(0)">3 hours</a></li>
+      <li><a onclick="setter(1)" href="javascript:void(0)">1 hour</a></li>
+    </ul>
 
-            <div class="progress">
-                <div class="indeterminate"></div>
-              </div>
+    <nav>
+      <div class="nav-wrapper indigo input-field">
+        <a href="javascript:void(0)" class="brand-logo right">vulture-feeds</a>
+        <ul id="nav-mobile" class="left" style="height:64px">
+          <!--override element height to match nav-wrapper-->
 
-           </div>
-           
-           
-    
-       </nav>
-       
-       
-        <table class="striped" id="myTable"></table>
+          <li>
+            <a
+              id="Sort"
+              class="waves-effect waves-light btn-small"
+              href="#"
+              onclick="sortTable()"
+              >Sort</a
+            >
+          </li>
+          <li>
+            <a
+              id="Time"
+              class="dropdown-trigger btn"
+              href="javascript:void(0)"
+              data-target="dropdown1"
+              >24 hours<i class="material-icons right">arrow_drop_down</i></a
+            >
+          </li>
+          <li>
+            <input
+              placeholder="Search"
+              id="query"
+              type="text"
+              class="validate"
+              onfocus="displayCancelShow()"
+              onkeyup="searchFunction()"
+              onblur="displayCancelHide()"
+            />
+          </li>
+          <li>
+            <a
+              id="Clear"
+              class="waves-effect waves-light btn-small"
+              href="#"
+              onclick="displayCancelHide()"
+              style="visibility:hidden"
+              >Clear</a
+            >
+          </li>
+          <li>
+            <a
+              id="ready"
+              href="#"
+              onclick="ipcRenderer.send('quitAndInstall')"
+              style="visibility:hidden"
+              >No Updates Ready</a
+            >
+          </li>
+        </ul>
 
-        <ul></ul>
-        
-       <!-- <script src="../js/hammerjs.js" onload="window.Hammer = module.exports;"></script> -->
-        <script type="text/javascript" src="../js/materialize.min.js"></script>
-        <script src="../js/mainWindow.js" type="text/javascript"></script>
-        <!--Version: <span id="version">v1.0.0</span> -->
-        <!-- the button onClick sends a quitAndInstall message to the electron main process -->
-        <!--button id="ready" onClick="ipcRenderer.send('quitAndInstall')">No Updates Ready</button>-->
-        <script>
-            //let versionID = document.getElementById('version');
-            //versionID.innerHTML = version;
-            //const ipcRenderer = require('electron').ipcRenderer;
-            // wait for an updateReady message
-            ipcRenderer.on('updateReady', function(event, text) {
-                // changes the text of the button
-                let container = document.getElementById('ready');
-                container.innerHTML = "Update " + version;
-                container.style.visibility = "visible";
-            })
-        </script>
-        
-        
-    </body>
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+      </div>
+    </nav>
+
+    <table class="striped" id="myTable"></table>
+
+    <ul></ul>
+
+    <!-- <script src="../js/hammerjs.js" onload="window.Hammer = module.exports;"></script> -->
+    <script type="text/javascript" src="../js/materialize.min.js"></script>
+    <script src="../js/mainWindow.js" type="text/javascript"></script>
+    <!--Version: <span id="version">v1.0.0</span> -->
+    <!-- the button onClick sends a quitAndInstall message to the electron main process -->
+    <!--button id="ready" onClick="ipcRenderer.send('quitAndInstall')">No Updates Ready</button>-->
+    <script>
+      //let versionID = document.getElementById('version');
+      //versionID.innerHTML = version;
+      //const ipcRenderer = require('electron').ipcRenderer;
+      // wait for an updateReady message
+      ipcRenderer.on("updateReady", function(event, text) {
+        // changes the text of the button
+        let container = document.getElementById("ready");
+        container.innerHTML = "Update " + version;
+        container.style.visibility = "visible";
+      });
+    </script>
+  </body>
 </html>
 <!--
  <li><button class="btn waves-effect waves-light" onclick="sortTable()">Sort</button></li>
