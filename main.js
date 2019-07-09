@@ -210,6 +210,9 @@ function importDB() {
 function createAddWindow() {
   let { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
   addWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
     width: width / 2,
     height: 300,
     title: "Add News List Item"
@@ -232,6 +235,9 @@ function createAddWindow() {
 function createAddWatchPageWindow() {
   let { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
   addWatchPageWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
     width: width / 2,
     height: 400,
     title: "Add URL"
@@ -246,7 +252,7 @@ function createAddWatchPageWindow() {
   );
   //garbage collection
   addWatchPageWindow.on("close", function() {
-    addWatchPageWindow = null;
+    //addWatchPageWindow = null;
   });
 }
 
@@ -254,6 +260,9 @@ function createAddWatchPageWindow() {
 function createAddRepoWindow() {
   let { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
   repoWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
     width: width / 2,
     height: 400,
     title: "Add URL"
@@ -276,6 +285,9 @@ function createAddRepoWindow() {
 function createFeedWindow() {
   let { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
   feedWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
     width: width / 2,
     height: 400,
     title: "Feed List"
@@ -298,6 +310,9 @@ function createFeedWindow() {
 function createPageWindow() {
   let { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
   pageWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
     width: width / 2,
     height: 400,
     title: "Page List"
@@ -536,7 +551,7 @@ function getPage(pageObj) {
         let blob = "";
         $(links).each(function(i, link) {
           if ($(link).attr("href")) {
-            //console.log('cheerio: ' + $(link).attr('href'));
+            console.log("cheerio: " + $(link).attr("href"));
             blob += $(link).attr("href");
           }
         });
@@ -631,7 +646,7 @@ function isHTML(str) {
     let arrNames = str.split(",");
 
     if (arrNames.length > 0) {
-      console.log("arrNames", arrNames);
+      //console.log("arrNames", arrNames);
       let rebuiltString = "";
       arrNames.forEach(element => {
         rebuiltString += element.replace(/<(.|\n)*?>/g, "");
@@ -660,7 +675,8 @@ function getFeed(theFeed, timeWindow, flist, callback) {
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36",
       Connection: "keep-alive"
-    }
+    },
+    timeout: 10000
   };
   const req = request(options);
   //const req = request(theFeed)
@@ -689,6 +705,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
 
   feedparser.on("error", function(error) {
     // always handle errors
+    mainWindow.webContents.send("update", "Search");
     console.log(error, error.stack);
     console.log("error here " + theFeed);
     callback(error);
@@ -703,7 +720,6 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     let meta = this.meta; // **NOTE** the 'meta' is always available in the context of the feedparser instance
     let item;
     let now = moment(); //now
-    //console.log(meta.author);
 
     while ((item = stream.read())) {
       //console.log(item.author.split(','));
@@ -766,6 +782,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
       //list stories 12 hours old or less
       if (parseInt(item.published) <= timeWindow) {
         //send each article object to mainWindow
+        //console.log(item);
         mainWindow.webContents.send("item:add", item);
       }
     }
@@ -799,10 +816,14 @@ exports.processFeeds = arg => {
       ) {
         counter++;
         if (arg.length <= counter) {
+          mainWindow.webContents.send("update", "Search");
           mainWindow.webContents.send("stop", true);
           console.log(`Finished: ${counter} out of ${arg.length} feeds`);
         } else {
-          console.log(`${counter} out of ${arg.length} feeds`);
+          let m = counter + " out of " + arg.length + " feeds";
+          console.log(m);
+
+          mainWindow.webContents.send("update", m);
         }
       });
     } else {

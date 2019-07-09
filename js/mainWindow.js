@@ -171,6 +171,7 @@ function setup() {
     });
 }
 
+//turns hex HTML from RSS into utf-8
 function htmlDecode(input) {
   var e = document.createElement("div");
   e.innerHTML = input;
@@ -182,6 +183,11 @@ function htmlDecode(input) {
 ipcRenderer.on("stop", function() {
   console.log("stop handler");
   toggleProgressBar("determinate");
+});
+
+ipcRenderer.on("update", function(e, text) {
+  console.log(text);
+  document.getElementById("query").placeholder = text;
 });
 
 //not yet functional for watchedPages db
