@@ -119,6 +119,7 @@ function toggleProgressBar(bstate) {
 
 //do this when the window has loaded
 window.onload = () => {
+  console.log("OnLoad");
   toggleProgressBar("indeterminate");
   let hours = remote.getGlobal("timeWindow").minutes / 60;
   setter(hours);
@@ -183,6 +184,18 @@ function htmlDecode(input) {
 ipcRenderer.on("stop", function() {
   console.log("stop handler");
   toggleProgressBar("determinate");
+});
+
+ipcRenderer.on("blur", function() {
+  console.log("blur handler");
+  let scrollPosition = window.scrollY;
+  config.set("scrollPosition", scrollPosition);
+});
+
+ipcRenderer.on("focus", function() {
+  let y = config.get("scrollPosition", 0);
+  window.scrollTo(0, y);
+  console.log("focus handler", y);
 });
 
 ipcRenderer.on("update", function(e, text) {

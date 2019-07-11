@@ -109,6 +109,15 @@ app.on("ready", function() {
       nodeIntegration: true
     }
   });
+
+  mainWindow.on("focus", () => {
+    console.log("Restore tab position");
+    mainWindow.webContents.send("focus");
+  });
+  mainWindow.on("blur", () => {
+    console.log("Save tab position");
+    mainWindow.webContents.send("blur");
+  });
   //load html
   mainWindow.loadURL(
     url.format({
