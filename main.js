@@ -94,6 +94,9 @@ global.fdb = {
 global.pdb = {
   db: []
 };
+global.masterList = {
+  db: []
+};
 
 global.timeWindow = { minutes: setTime }; //24hours * 60 minutes, default on mainWindow.html
 
@@ -804,6 +807,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
       if (parseInt(item.published) <= timeWindow) {
         //send each article object to mainWindow
         //console.log(item);
+        global.masterList.db.push(item);
         mainWindow.webContents.send("item:add", item);
       }
     }
@@ -811,6 +815,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
 
   feedparser.on("end", () => {
     callback();
+    //console.info(global.masterList.db);
     //console.log('End parsing ' + theFeed);
   });
 }
