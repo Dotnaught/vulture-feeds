@@ -9,10 +9,10 @@ const checksum = require("checksum");
 const moment = require("moment");
 moment().format();
 
-const Config = require("electron-config");
-const config = new Config();
+const Store = require("electron-store");
+const store = new Store();
 let defaultTime = 1440;
-let setTime = config.get("savedTime", defaultTime);
+let setTime = store.get("savedTime", defaultTime);
 
 const cheerio = require("cheerio");
 
@@ -20,7 +20,7 @@ const { app, BrowserWindow, Menu, ipcMain, dialog } = electron;
 const { parse } = require("tldjs"); //for parsing domain names
 
 //set ENV production or development
-process.env.NODE_ENV = "production";
+process.env.NODE_ENV = "development";
 //set debug flag
 process.env.DEBUG = "electron-builder";
 
@@ -97,6 +97,18 @@ global.pdb = {
 
 global.timeWindow = { minutes: setTime }; //24hours * 60 minutes, default on mainWindow.html
 
+// SSL/TSL: this is the self signed certificate support
+app.on(
+  "certificate-error",
+  (event, webContents, url, error, certificate, callback) => {
+    // On certificate error we disable default behaviour (stop loading the page)
+    // and we then say "it is all fine - true" to the callback
+    event.preventDefault();
+    console.log("certificate error");
+    callback(true);
+  }
+);
+
 //Listen for the app to be ready
 app.on("ready", function() {
   const { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -111,11 +123,11 @@ app.on("ready", function() {
   });
 
   mainWindow.on("focus", () => {
-    console.log("Restore tab position");
+    //console.log("Restore tab position");
     mainWindow.webContents.send("focus");
   });
   mainWindow.on("blur", () => {
-    console.log("Save tab position");
+    //console.log("Save tab position");
     mainWindow.webContents.send("blur");
   });
   //load html

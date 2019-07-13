@@ -23,8 +23,8 @@ const shell = require("electron").shell;
 const main = remote.require("./main.js");
 //main.test();
 const db = require("../js/mydatabase");
-const Config = require("electron-config");
-const config = new Config();
+const Store = require("electron-store");
+const store = new Store();
 const fs = require("fs");
 const version = require("../package").version;
 const dialog = require("electron").remote.dialog;
@@ -69,7 +69,7 @@ function setter(val) {
   let oldval = remote.getGlobal("timeWindow").minutes;
   let newval = val * 60;
   remote.getGlobal("timeWindow").minutes = newval;
-  config.set("savedTime", newval);
+  store.set("savedTime", newval);
   let hours = val === 1 ? " hour" : " hours";
   document.getElementById("Time").innerHTML = val + hours;
   if (oldval !== newval) {
@@ -189,11 +189,11 @@ ipcRenderer.on("stop", function() {
 ipcRenderer.on("blur", function() {
   console.log("blur handler");
   let scrollPosition = window.scrollY;
-  config.set("scrollPosition", scrollPosition);
+  store.set("scrollPosition", scrollPosition);
 });
 
 ipcRenderer.on("focus", function() {
-  let y = config.get("scrollPosition", 0);
+  let y = store.get("scrollPosition", 0);
   window.scrollTo(0, y);
   console.log("focus handler", y);
 });
@@ -423,7 +423,7 @@ ipcRenderer.on("item:add", function(e, item, filter) {
   const linkText = document.createTextNode(displayTitle);
   a.appendChild(linkText);
 
-  let linkColor = config.get(sourceKey, defaultColor);
+  let linkColor = store.get(sourceKey, defaultColor);
   //alter linkColor for unchanged watched pages
   if (item.changedText) {
     if (item.changedText.includes("unchanged")) {
@@ -513,7 +513,7 @@ ipcRenderer.on("item:dbclear", function() {
   remote.getGlobal("showFeedsList").defaultFeedsList = [];
   remote.getGlobal("fdb").db = [];
   remote.getGlobal("pdb").db = [];
-  config.clear();
+  store.clear();
   table.innerHTML = "";
   M.toast({ html: "Feeds cleared", displayLength: 4000 });
 
