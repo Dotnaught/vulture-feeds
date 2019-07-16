@@ -1,5 +1,6 @@
 const electron = require("electron");
 const { ipcRenderer, remote } = electron;
+const prompt = require("electron-prompt");
 const ul = document.querySelector("ul");
 const table = document.querySelector("table");
 
@@ -119,7 +120,7 @@ function toggleProgressBar(bstate) {
 
 //do this when the window has loaded
 window.onload = () => {
-  console.log("OnLoad");
+  //console.log("OnLoad");
   toggleProgressBar("indeterminate");
   let hours = remote.getGlobal("timeWindow").minutes / 60;
   setter(hours);
@@ -182,12 +183,12 @@ function htmlDecode(input) {
 }
 
 ipcRenderer.on("stop", function() {
-  console.log("stop handler");
+  //console.log("stop handler");
   toggleProgressBar("determinate");
 });
 
 ipcRenderer.on("blur", function() {
-  console.log("blur handler");
+  //console.log("blur handler");
   let scrollPosition = window.scrollY;
   store.set("scrollPosition", scrollPosition);
 });
@@ -195,18 +196,18 @@ ipcRenderer.on("blur", function() {
 ipcRenderer.on("focus", function() {
   let y = store.get("scrollPosition", 0);
   window.scrollTo(0, y);
-  console.log("focus handler", y);
+  //console.log("focus handler", y);
 });
 
 ipcRenderer.on("update", function(e, text) {
-  console.log(text);
+  //console.log(text);
   document.getElementById("query").placeholder = text;
 });
 
 //not yet functional for watchedPages db
 ipcRenderer.on("import", function(e, dirpath) {
   if (fs.existsSync(dirpath)) {
-    console.log("import " + dirpath);
+    //console.log("import " + dirpath);
     let importObj = JSON.parse(fs.readFileSync(dirpath, "utf8"));
 
     importObj.forEach(function(arrayItem) {
@@ -564,6 +565,26 @@ ipcRenderer.on("item:addFeed", function(e, item, filter) {
       alert("There was a problem with " + item + " so it's been removed");
       deleteItem(item);
     });
+});
+
+ipcRenderer.on("addAuthor", function(e) {
+  prompt({
+    title: "Watch for Author",
+    label: "Author:",
+    value: "Name",
+    inputAttrs: {
+      type: "text"
+    }
+  })
+    .then(r => {
+      if (r === null) {
+        console.log("user cancelled");
+      } else {
+        store.set("author", r);
+        console.log("result", r);
+      }
+    })
+    .catch(console.error);
 });
 
 //receive addRepo from main.js, via addRepo.js

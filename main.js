@@ -20,7 +20,7 @@ const { app, BrowserWindow, Menu, ipcMain, dialog } = electron;
 const { parse } = require("tldjs"); //for parsing domain names
 
 //set ENV production or development
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 //set debug flag
 process.env.DEBUG = "electron-builder";
 
@@ -218,14 +218,16 @@ function importDB() {
     function(filepath) {
       //todo show error dialog
       if (
+        filepath === undefined ||
         !fs.existsSync(filepath[0]) ||
         filepath[0].indexOf("vfdb.json") === -1
-      )
+      ) {
         return;
-
-      let importFile = filepath[0];
-      mainWindow.webContents.send("import", importFile);
-      //[ '/Users/tk/tk' ]
+      } else {
+        let importFile = filepath[0];
+        mainWindow.webContents.send("import", importFile);
+        //[ '/Users/tk/tk' ]
+      }
     }
   );
 }
@@ -700,7 +702,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36",
       Connection: "keep-alive"
     },
-    timeout: 10000
+    timeout: 20000
   };
   const req = request(options);
   //const req = request(theFeed)
@@ -808,21 +810,21 @@ function getFeed(theFeed, timeWindow, flist, callback) {
         //send each article object to mainWindow
         //console.log(item);
         global.masterList.db.push(item);
-        mainWindow.webContents.send("item:add", item);
+        //mainWindow.webContents.send("item:add", item);
       }
     }
   });
 
   feedparser.on("end", () => {
-    callback();
-    //console.info(global.masterList.db);
     //console.log('End parsing ' + theFeed);
+    callback();
   });
 }
 //exports.test = () => console.log('Export works correctly');
 // Make method externaly visible
 exports.processFeeds = arg => {
   global.showFeedsList.defaultFeedsList = [];
+  global.masterList.db = [];
   let counter = 0;
 
   for (var i = 0; i < arg.length; i++) {
@@ -844,10 +846,17 @@ exports.processFeeds = arg => {
         if (arg.length <= counter) {
           mainWindow.webContents.send("update", "Search");
           mainWindow.webContents.send("stop", true);
-          console.log(`Finished: ${counter} out of ${arg.length} feeds`);
+          //console.log(`Finished: ${counter} out of ${arg.length} feeds`);
+          //revised sort
+          global.masterList.db.sort(function(a, b) {
+            return a.published - b.published;
+          });
+          for (var i = 0; i < global.masterList.db.length; i++) {
+            mainWindow.webContents.send("item:add", global.masterList.db[i]);
+          }
         } else {
           let m = counter + " out of " + arg.length + " feeds";
-          console.log(m);
+          //console.log(m);
 
           mainWindow.webContents.send("update", m);
         }
@@ -895,6 +904,13 @@ const mainMenuTemplate = [
         accelerator: "CmdOrCtrl+E",
         click() {
           createAddRepoWindow();
+        }
+      },
+      {
+        label: "Add Author",
+        accelerator: "CmdOrCtrl+W",
+        click() {
+          mainWindow.webContents.send("addAuthor");
         }
       },
       {

@@ -1,19 +1,39 @@
-//https://kilianvalkhof.com/2019/electron/notarizing-your-electron-application/
-//require('dotenv').config();
-const { notarize } = require("electron-notarize");
+// See: https://medium.com/@TwitterArchiveEraser/notarize-electron-apps-7a5f988406db
 
-exports.default = async function notarizing(context) {
-  if (electronPlatformName !== "darwin") {
+const fs = require("fs");
+const path = require("path");
+var electron_notarize = require("electron-notarize");
+
+module.exports = async function(params) {
+  // Only notarize the app on Mac OS only.
+  if (process.platform !== "darwin") {
     return;
   }
+  console.log("afterSign hook triggered", params);
 
-  const { electronPlatformName, appOutDir } = context;
-  const appName = context.packager.appInfo.productFilename;
+  // Same appId in electron-builder.
+  let appId = "com.lot49.vulturefeeds";
 
-  return await notarize({
-    appBundleId: "com.lot49.vulture-feeds",
-    appPath: `${appOutDir}/${appName}.app`,
-    appleId: process.env.APPLEID,
-    appleIdPassword: process.env.APPLEIDPASS
-  });
+  let appPath = path.join(
+    params.appOutDir,
+    `${params.packager.appInfo.productFilename}.app`
+  );
+  if (!fs.existsSync(appPath)) {
+    throw new Error(`Cannot find application at: ${appPath}`);
+  }
+
+  console.log(`Notarizing ${appId} found at ${appPath}`);
+
+  try {
+    await electron_notarize.notarize({
+      appBundleId: appId,
+      appPath: appPath,
+      appleId: process.env.APPLEID,
+      appleIdPassword: process.env.APPLEIDPASS
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+  console.log(`Done notarizing ${appId}`);
 };
