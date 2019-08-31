@@ -56,8 +56,8 @@ const octokit = new Octokit({
 
   // pass custom methods for debug, info, warn and error
   log: {
-    debug: () => {},
-    info: () => {},
+    debug: () => { },
+    info: () => { },
     warn: console.warn,
     error: console.error
   },
@@ -113,7 +113,7 @@ app.on(
 );
 
 //Listen for the app to be ready
-app.on("ready", function() {
+app.on("ready", function () {
   const { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
 
   //create new window
@@ -142,7 +142,7 @@ app.on("ready", function() {
     })
   );
   //quit app when closed
-  mainWindow.on("closed", function() {
+  mainWindow.on("closed", function () {
     app.quit();
   });
 
@@ -183,7 +183,7 @@ function exportDB() {
       buttonLabel: "Export the file 'vfdb.json'",
       filters: [{ name: "JSON", extensions: ["json"] }]
     },
-    function(filepath) {
+    function (filepath) {
       if (filepath === undefined) return;
 
       let fullpath = filepath + "/vfdb.json";
@@ -215,7 +215,7 @@ function importDB() {
       buttonLabel: "Select the file 'vfdb.json'",
       filters: [{ name: "JSON", extensions: ["json"] }]
     },
-    function(filepath) {
+    function (filepath) {
       //todo show error dialog
       if (
         filepath === undefined ||
@@ -252,7 +252,7 @@ function createAddWindow() {
     })
   );
   //garbage collection
-  addWindow.on("close", function() {
+  addWindow.on("close", function () {
     addWindow = null;
   });
 }
@@ -277,7 +277,7 @@ function createAddWatchPageWindow() {
     })
   );
   //garbage collection
-  addWatchPageWindow.on("close", function() {
+  addWatchPageWindow.on("close", function () {
     //addWatchPageWindow = null;
   });
 }
@@ -302,7 +302,7 @@ function createAddRepoWindow() {
     })
   );
   //garbage collection
-  repoWindow.on("close", function() {
+  repoWindow.on("close", function () {
     addWatchPageWindow = null;
   });
 }
@@ -327,7 +327,7 @@ function createFeedWindow() {
     })
   );
   //garbage collection
-  feedWindow.on("close", function() {
+  feedWindow.on("close", function () {
     feedWindow = null;
   });
 }
@@ -352,13 +352,13 @@ function createPageWindow() {
     })
   );
   //garbage collection
-  pageWindow.on("close", function() {
+  pageWindow.on("close", function () {
     pageWindow = null;
   });
 }
 
 //triggered from ipcRenderer in addRepo.js
-ipcMain.on("item:addRepo", function(e, repoURL, keywords) {
+ipcMain.on("item:addRepo", function (e, repoURL, keywords) {
   if (repoURL) {
     let hash = 0;
     let linkHash = keywords; //passkeywords via this unused variable
@@ -380,7 +380,7 @@ ipcMain.on("item:addRepo", function(e, repoURL, keywords) {
 });
 
 //triggered from ipcRenderer in addWindow.js
-ipcMain.on("item:addFeed", function(e, item, filter) {
+ipcMain.on("item:addFeed", function (e, item, filter) {
   let obj = parse(item);
 
   if (obj.isValid && obj.tldExists && obj.domain) {
@@ -395,7 +395,7 @@ ipcMain.on("item:addFeed", function(e, item, filter) {
   addWindow.close();
 });
 
-ipcMain.on("item:addPage", function(e, page, mode) {
+ipcMain.on("item:addPage", function (e, page, mode) {
   //console.log('Received ' + page + ' ' + mode); //diff, links, both
   let obj = parse(page);
   let options = {
@@ -421,7 +421,7 @@ ipcMain.on("item:addPage", function(e, page, mode) {
           $ = cheerio.load(body);
           links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
           let blob = "";
-          $(links).each(function(i, link) {
+          $(links).each(function (i, link) {
             if ($(link).attr("href")) {
               //console.log('cheerio: ' + $(link).attr('href'));
               blob += $(link).attr("href");
@@ -456,7 +456,9 @@ ipcMain.on("item:addPage", function(e, page, mode) {
   addWatchPageWindow.close();
 });
 
-ipcMain.on("reload:mainWindow", function(e) {
+ipcMain.on("reload:mainWindow", function (e) {
+  console.log("reload");
+  global.masterList.db = [];
   mainWindow.webContents.reloadIgnoringCache();
 });
 
@@ -555,9 +557,11 @@ function getPage(pageObj) {
   //console.log('getpage');
   let options = {
     url: pageObj.url,
+    //protocol: "https:",
+    //port: 443,
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36",
       "Content-Type": "application/x-www-form-urlencoded"
     }
   };
@@ -575,7 +579,7 @@ function getPage(pageObj) {
         $ = cheerio.load(body);
         links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
         let blob = "";
-        $(links).each(function(i, link) {
+        $(links).each(function (i, link) {
           if ($(link).attr("href")) {
             console.log("cheerio: " + $(link).attr("href"));
             blob += $(link).attr("href");
@@ -697,6 +701,8 @@ function getFeed(theFeed, timeWindow, flist, callback) {
   const options = {
     url: theFeed,
     method: "GET",
+    //protocol: "https:",
+    //port: 443,
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36",
@@ -708,7 +714,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
   //const req = request(theFeed)
   const feedparser = new FeedParser();
 
-  req.on("error", function(error) {
+  req.on("error", function (error) {
     // handle any request errors
     console.log(">error: " + error + " fetching " + theFeed);
     callback(error);
@@ -716,7 +722,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     //mainWindow.webContents.send('item:removeFeed', theFeed);
   });
 
-  req.on("response", function(res) {
+  req.on("response", function (res) {
     var stream = this; // `this` is `req`, which is a stream
 
     if (res.statusCode !== 200) {
@@ -729,7 +735,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     }
   });
 
-  feedparser.on("error", function(error) {
+  feedparser.on("error", function (error) {
     // always handle errors
     mainWindow.webContents.send("update", "Search");
     console.log(error, error.stack);
@@ -740,7 +746,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     this.emit("end", error);
   });
 
-  feedparser.on("readable", function() {
+  feedparser.on("readable", function () {
     // This is where the feeds get processed
     let stream = this; // `this` is `feedparser`, which is a stream
     let meta = this.meta; // **NOTE** the 'meta' is always available in the context of the feedparser instance
@@ -826,7 +832,9 @@ exports.processFeeds = arg => {
   global.showFeedsList.defaultFeedsList = [];
   global.masterList.db = [];
   let counter = 0;
-
+  if (arg.length > 37) {
+    console.log("Length: " + arg.length);
+  }
   for (var i = 0; i < arg.length; i++) {
     //add rssLink to array
     global.showFeedsList.defaultFeedsList.push(arg[i].rssLink);
@@ -839,7 +847,7 @@ exports.processFeeds = arg => {
     if (arg[i].visible) {
       //TODO: check if online: https://www.npmjs.com/package/is-online
       //get articles from rss feed
-      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function(
+      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function (
         error
       ) {
         counter++;
@@ -848,7 +856,7 @@ exports.processFeeds = arg => {
           mainWindow.webContents.send("stop", true);
           //console.log(`Finished: ${counter} out of ${arg.length} feeds`);
           //revised sort
-          global.masterList.db.sort(function(a, b) {
+          global.masterList.db.sort(function (a, b) {
             return a.published - b.published;
           });
           for (var i = 0; i < global.masterList.db.length; i++) {

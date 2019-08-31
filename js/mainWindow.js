@@ -399,8 +399,11 @@ ipcRenderer.on("item:add", function(e, item, filter) {
   td1.style.textOverflow = "ellipsis";
 
   let domainObj = parse(item.revisedLink);
-  let domain = domainObj.domain;
-
+  let domain =
+    domainObj.subdomain === "www" || domainObj.subdomain === ""
+      ? domainObj.domain
+      : domainObj.subdomain + "." + domainObj.domain;
+  //use subdomain
   let sourceObj = parse(item.sourceLink);
   let sourceDomain = sourceObj.domain;
   let sourceKey = sourceDomain.replace(/\./g, "");
