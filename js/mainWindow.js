@@ -185,6 +185,10 @@ function htmlDecode(input) {
 ipcRenderer.on("stop", function() {
   //console.log("stop handler");
   toggleProgressBar("determinate");
+  M.toast({ html: "Done", displayLength: 3000 });
+  //var new_tbody = document.createElement("tbody");
+  //populate_with_new_rows(new_tbody);
+  //old_tbody.parentNode.replaceChild(new_tbody, old_tbody);
 });
 
 ipcRenderer.on("blur", function() {
@@ -363,6 +367,18 @@ function openLink(link, el) {
 
 //build mainWindow table via main.js/getFeed
 ipcRenderer.on("item:add", function(e, item, filter) {
+  // for (var i = 0; i < table.rows.length; i++) {
+  //   //console.log("@", table.rows[i].cells[0].getAttributeNode("data-key"));
+  //   let k = table.rows[i].cells[0].getAttribute("data-key");
+  //   console.log(typeof k, typeof item.key);
+  //   if (typeof k == "object") {
+  //     console.log("obj:", JSON.stringify(k), item.revisedLink);
+  //   }
+  //   if (table.rows[i].cells[0].getAttribute("data-key") === item.key) {
+  //     console.log("DUPE", item.revisedLink);
+  //   }
+  // }
+
   let filteredOrNot = "";
 
   if (item.filterList) {
@@ -388,6 +404,7 @@ ipcRenderer.on("item:add", function(e, item, filter) {
   const td0 = document.createElement("td");
   td0.style.width = "15%";
   td0.id = item.published; //sort by minutes
+  td0.dataset.key = item.key;
 
   const timeText = document.createTextNode(item.hoursAgo);
   td0.appendChild(timeText);
@@ -746,6 +763,7 @@ function removeItem(e) {
   }
 }
 
+//now unused
 function sortTable() {
   let theTable,
     rows,

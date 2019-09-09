@@ -5,7 +5,11 @@ const getUrls = require("get-urls"); //for finding original URLs in Reddit posts
 const assert = require("assert");
 const FeedParser = require("feedparser");
 const request = require("request"); // for fetching the feed
-const checksum = require("checksum");
+const crypto = require("crypto");
+const rootCas = require("ssl-root-cas/latest").create();
+
+require("https").globalAgent.options.ca = rootCas;
+
 const moment = require("moment");
 moment().format();
 
@@ -56,8 +60,8 @@ const octokit = new Octokit({
 
   // pass custom methods for debug, info, warn and error
   log: {
-    debug: () => { },
-    info: () => { },
+    debug: () => {},
+    info: () => {},
     warn: console.warn,
     error: console.error
   },
@@ -98,6 +102,8 @@ global.masterList = {
   db: []
 };
 
+global.activeRequest = { status: "inactive" };
+
 global.timeWindow = { minutes: setTime }; //24hours * 60 minutes, default on mainWindow.html
 
 // SSL/TSL: this is the self signed certificate support
@@ -113,7 +119,7 @@ app.on(
 );
 
 //Listen for the app to be ready
-app.on("ready", function () {
+app.on("ready", function() {
   const { width, height } = electron.screen.getPrimaryDisplay().workAreaSize;
 
   //create new window
@@ -142,7 +148,8 @@ app.on("ready", function () {
     })
   );
   //quit app when closed
-  mainWindow.on("closed", function () {
+  mainWindow.on("closed", function() {
+    console.log("Quitting...");
     app.quit();
   });
 
@@ -183,7 +190,7 @@ function exportDB() {
       buttonLabel: "Export the file 'vfdb.json'",
       filters: [{ name: "JSON", extensions: ["json"] }]
     },
-    function (filepath) {
+    function(filepath) {
       if (filepath === undefined) return;
 
       let fullpath = filepath + "/vfdb.json";
@@ -215,7 +222,7 @@ function importDB() {
       buttonLabel: "Select the file 'vfdb.json'",
       filters: [{ name: "JSON", extensions: ["json"] }]
     },
-    function (filepath) {
+    function(filepath) {
       //todo show error dialog
       if (
         filepath === undefined ||
@@ -252,7 +259,7 @@ function createAddWindow() {
     })
   );
   //garbage collection
-  addWindow.on("close", function () {
+  addWindow.on("close", function() {
     addWindow = null;
   });
 }
@@ -277,7 +284,7 @@ function createAddWatchPageWindow() {
     })
   );
   //garbage collection
-  addWatchPageWindow.on("close", function () {
+  addWatchPageWindow.on("close", function() {
     //addWatchPageWindow = null;
   });
 }
@@ -302,7 +309,7 @@ function createAddRepoWindow() {
     })
   );
   //garbage collection
-  repoWindow.on("close", function () {
+  repoWindow.on("close", function() {
     addWatchPageWindow = null;
   });
 }
@@ -327,7 +334,7 @@ function createFeedWindow() {
     })
   );
   //garbage collection
-  feedWindow.on("close", function () {
+  feedWindow.on("close", function() {
     feedWindow = null;
   });
 }
@@ -352,13 +359,13 @@ function createPageWindow() {
     })
   );
   //garbage collection
-  pageWindow.on("close", function () {
+  pageWindow.on("close", function() {
     pageWindow = null;
   });
 }
 
 //triggered from ipcRenderer in addRepo.js
-ipcMain.on("item:addRepo", function (e, repoURL, keywords) {
+ipcMain.on("item:addRepo", function(e, repoURL, keywords) {
   if (repoURL) {
     let hash = 0;
     let linkHash = keywords; //passkeywords via this unused variable
@@ -380,7 +387,7 @@ ipcMain.on("item:addRepo", function (e, repoURL, keywords) {
 });
 
 //triggered from ipcRenderer in addWindow.js
-ipcMain.on("item:addFeed", function (e, item, filter) {
+ipcMain.on("item:addFeed", function(e, item, filter) {
   let obj = parse(item);
 
   if (obj.isValid && obj.tldExists && obj.domain) {
@@ -395,7 +402,7 @@ ipcMain.on("item:addFeed", function (e, item, filter) {
   addWindow.close();
 });
 
-ipcMain.on("item:addPage", function (e, page, mode) {
+ipcMain.on("item:addPage", function(e, page, mode) {
   //console.log('Received ' + page + ' ' + mode); //diff, links, both
   let obj = parse(page);
   let options = {
@@ -421,19 +428,27 @@ ipcMain.on("item:addPage", function (e, page, mode) {
           $ = cheerio.load(body);
           links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
           let blob = "";
-          $(links).each(function (i, link) {
+          $(links).each(function(i, link) {
             if ($(link).attr("href")) {
               //console.log('cheerio: ' + $(link).attr('href'));
               blob += $(link).attr("href");
             }
           });
-          let linkHash = checksum(blob);
+
+          let linkHash = crypto
+            .createHash("sha1")
+            .update(blob)
+            .digest("hex");
           //console.log("blob: \n" + blob);
           //console.log(linkHash);
 
-          //console.log(`Seeding checksum for ${page}.`)
-          let hash = checksum(body);
-          //console.log(hash);
+          //console.log(`Seeding hash for ${page}.`)
+
+          let hash = crypto
+            .createHash("sha1")
+            .update(body)
+            .digest("hex");
+
           //store hash in db
           mainWindow.webContents.send(
             "item:addPage",
@@ -456,7 +471,7 @@ ipcMain.on("item:addPage", function (e, page, mode) {
   addWatchPageWindow.close();
 });
 
-ipcMain.on("reload:mainWindow", function (e) {
+ipcMain.on("reload:mainWindow", function(e) {
   console.log("reload");
   global.masterList.db = [];
   mainWindow.webContents.reloadIgnoringCache();
@@ -524,6 +539,11 @@ function getRepo(pageObj) {
           }
           item.revisedLink = data[i].html_url;
           item.sourceLink = pageObj.url; //github
+          item.key = crypto
+            .createHash("sha1")
+            .update(item.revisedLink)
+            .digest("hex");
+          //console.log(item.revisedLink, item.key);
 
           item.title = `[${data[i].comments} comments] `;
           item.title += data[i].title.replace(/[^a-zA-Z 0-9]+/g, "");
@@ -574,20 +594,27 @@ function getPage(pageObj) {
       if (response.statusCode > 399) {
         console.log("status code " + response.statusCode);
       } else {
-        console.log(`Checking checksum for ${pageObj.url}.`);
+        console.log(`Checking hash for ${pageObj.url}.`);
         //
         $ = cheerio.load(body);
         links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
         let blob = "";
-        $(links).each(function (i, link) {
+        $(links).each(function(i, link) {
           if ($(link).attr("href")) {
             console.log("cheerio: " + $(link).attr("href"));
             blob += $(link).attr("href");
           }
         });
-        let currentLinkHash = checksum(blob);
 
-        let currentHash = checksum(body);
+        let currentLinkHash = crypto
+          .createHash("sha1")
+          .update(blob)
+          .digest("hex");
+
+        let currentHash = crypto
+          .createHash("sha1")
+          .update(body)
+          .digest("hex");
 
         if (
           checkHashAndMode(
@@ -610,6 +637,14 @@ function getPage(pageObj) {
           item.hoursAgo = moment(published).fromNow(); // for display
           item.revisedLink = pageObj.url;
           item.sourceLink = pageObj.url;
+          item.key = crypto
+            .createHash("sha1")
+            .update(item.revisedLink)
+            .digest("hex");
+
+          if (typeof item.key != "string") {
+            console.log("***", item.revisedLink);
+          }
 
           item.title = "> ";
           if (body.match(/<title[^>]*>([^<]+)<\/title>/) !== null) {
@@ -649,6 +684,14 @@ function getPage(pageObj) {
           }
           item.revisedLink = pageObj.url;
           item.sourceLink = pageObj.url;
+          item.key = crypto
+            .createHash("sha1")
+            .update(item.revisedLink)
+            .digest("hex");
+
+          if (typeof item.key != "string") {
+            console.log("***", item.revisedLink);
+          }
 
           item.title = "> ";
           if (body.match(/<title[^>]*>([^<]+)<\/title>/) !== null) {
@@ -714,7 +757,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
   //const req = request(theFeed)
   const feedparser = new FeedParser();
 
-  req.on("error", function (error) {
+  req.on("error", function(error) {
     // handle any request errors
     console.log(">error: " + error + " fetching " + theFeed);
     callback(error);
@@ -722,7 +765,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     //mainWindow.webContents.send('item:removeFeed', theFeed);
   });
 
-  req.on("response", function (res) {
+  req.on("response", function(res) {
     var stream = this; // `this` is `req`, which is a stream
 
     if (res.statusCode !== 200) {
@@ -735,7 +778,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     }
   });
 
-  feedparser.on("error", function (error) {
+  feedparser.on("error", function(error) {
     // always handle errors
     mainWindow.webContents.send("update", "Search");
     console.log(error, error.stack);
@@ -746,7 +789,7 @@ function getFeed(theFeed, timeWindow, flist, callback) {
     this.emit("end", error);
   });
 
-  feedparser.on("readable", function () {
+  feedparser.on("readable", function() {
     // This is where the feeds get processed
     let stream = this; // `this` is `feedparser`, which is a stream
     let meta = this.meta; // **NOTE** the 'meta' is always available in the context of the feedparser instance
@@ -804,6 +847,19 @@ function getFeed(theFeed, timeWindow, flist, callback) {
         item.viaTitle = "Lobste.rs";
       }
 
+      if (typeof item.revisedLink != "string") {
+        console.log("Huh:", item.revisedLink);
+      }
+
+      item.key = crypto
+        .createHash("sha1")
+        .update(item.revisedLink)
+        .digest("hex");
+
+      if (typeof item.key != "string") {
+        console.log("***", item.revisedLink);
+      }
+
       let published = item.pubDate || meta.pubDate || Date.now();
 
       item.published = now.diff(published, "minutes"); //use for sorting
@@ -822,13 +878,20 @@ function getFeed(theFeed, timeWindow, flist, callback) {
   });
 
   feedparser.on("end", () => {
-    //console.log('End parsing ' + theFeed);
+    //console.log("End parsing " + theFeed);
     callback();
   });
+  //end request
 }
 //exports.test = () => console.log('Export works correctly');
 // Make method externaly visible
 exports.processFeeds = arg => {
+  if (global.activeRequest.status === "active") {
+    console.log("Request blocked", global.activeRequest.status);
+    return;
+  } else {
+    console.log("Executing request");
+  }
   global.showFeedsList.defaultFeedsList = [];
   global.masterList.db = [];
   let counter = 0;
@@ -836,6 +899,10 @@ exports.processFeeds = arg => {
     console.log("Length: " + arg.length);
   }
   for (var i = 0; i < arg.length; i++) {
+    if (i === 0) {
+      console.log("Request-> active");
+      global.activeRequest.status = "active";
+    }
     //add rssLink to array
     global.showFeedsList.defaultFeedsList.push(arg[i].rssLink);
 
@@ -847,18 +914,34 @@ exports.processFeeds = arg => {
     if (arg[i].visible) {
       //TODO: check if online: https://www.npmjs.com/package/is-online
       //get articles from rss feed
-      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function (
+      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function(
         error
       ) {
         counter++;
         if (arg.length <= counter) {
+          global.activeRequest.status = "inactive";
+          console.log("Request->", global.activeRequest.status);
           mainWindow.webContents.send("update", "Search");
           mainWindow.webContents.send("stop", true);
           //console.log(`Finished: ${counter} out of ${arg.length} feeds`);
           //revised sort
-          global.masterList.db.sort(function (a, b) {
+          global.masterList.db.sort(function(a, b) {
             return a.published - b.published;
           });
+          //deplicate global.masterList.db
+          let arr = global.masterList.db;
+
+          global.masterList.db = arr
+            .map(JSON.stringify)
+            .reverse() // convert to JSON string the array content, then reverse it (to check from end to begining)
+            .filter(function(item, index, arr) {
+              return arr.indexOf(item, index + 1) === -1;
+            }) // check if there is any occurence of the item in whole array
+            .reverse()
+            .map(JSON.parse); // revert it to original state
+
+          //console.log(global.masterList.db.length, "Dupes", arr.length); // All duplicates
+
           for (var i = 0; i < global.masterList.db.length; i++) {
             mainWindow.webContents.send("item:add", global.masterList.db[i]);
           }
@@ -922,7 +1005,19 @@ const mainMenuTemplate = [
         }
       },
       {
-        role: "reload"
+        label: "Reload",
+        accelerator: "CmdOrCtrl+R",
+        click() {
+          console.log("reload");
+
+          if (global.activeRequest.status === "inactive") {
+            global.masterList.db = [];
+            console.log(global.masterList.db.length);
+            mainWindow.reload();
+          } else {
+            console.log("Request in progress");
+          }
+        }
       },
 
       { type: "separator" },
