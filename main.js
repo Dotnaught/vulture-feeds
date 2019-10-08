@@ -889,9 +889,8 @@ exports.processFeeds = arg => {
   if (global.activeRequest.status === "active") {
     console.log("Request blocked", global.activeRequest.status);
     return;
-  } else {
-    console.log("Executing request");
   }
+  console.log("Executing request");
   global.showFeedsList.defaultFeedsList = [];
   global.masterList.db = [];
   let counter = 0;
@@ -931,27 +930,26 @@ exports.processFeeds = arg => {
           //deplicate global.masterList.db
           let arr = global.masterList.db;
 
-          global.masterList.db = arr
-            .map(JSON.stringify)
-            .reverse() // convert to JSON string the array content, then reverse it (to check from end to begining)
-            .filter(function(item, index, arr) {
-              return arr.indexOf(item, index + 1) === -1;
-            }) // check if there is any occurence of the item in whole array
-            .reverse()
-            .map(JSON.parse); // revert it to original state
-
-          //console.log(global.masterList.db.length, "Dupes", arr.length); // All duplicates
-
-          for (var i = 0; i < global.masterList.db.length; i++) {
-            mainWindow.webContents.send("item:add", global.masterList.db[i]);
+          const result = [];
+          const map = new Map();
+          for (const item of arr) {
+            if (!map.has(item.key)) {
+              map.set(item.key, true); // set any value to Map
+              result.push(item);
+            }
           }
+          //add fetched feed items to table
+          for (var i = 0; i < result.length; i++) {
+            mainWindow.webContents.send("item:add", result[i]);
+          }
+          global.masterList.db = [];
         } else {
           let m = counter + " out of " + arg.length + " feeds";
           //console.log(m);
 
           mainWindow.webContents.send("update", m);
         }
-      });
+      }); //end getFeed
     } else {
       counter++;
       console.log(arg[i].rssLink + " not visible");
