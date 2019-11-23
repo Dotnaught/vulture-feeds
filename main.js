@@ -1,3 +1,4 @@
+"use strict";
 const electron = require("electron");
 const url = require("url");
 const path = require("path");
@@ -6,9 +7,9 @@ const assert = require("assert");
 const FeedParser = require("feedparser");
 const request = require("request"); // for fetching the feed
 const crypto = require("crypto");
-const rootCas = require("ssl-root-cas/latest").create();
+//const rootCas = require("ssl-root-cas/latest").create();
 
-require("https").globalAgent.options.ca = rootCas;
+//require("https").globalAgent.options.ca = rootCas;
 
 const moment = require("moment");
 moment().format();
