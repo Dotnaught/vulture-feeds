@@ -52,7 +52,7 @@ const clickedColor = "#024d72";
 
 //M.AutoInit();
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
   let elems = document.querySelectorAll(".dropdown-trigger");
   let options = { hover: false };
   let instances = M.Dropdown.init(elems, options);
@@ -129,23 +129,36 @@ window.onload = () => {
 };
 
 function checkWatchedPages() {
-  db.transaction("r", db.pages, function* () {
+  db.transaction("r", db.pages, function*() {
     yield db.pages
       .where("timeChecked")
       .below(Date.now())
-      .toArray(function (watchPages) {
+      .toArray(function(watchPages) {
         //console.log("Checking page database");
         remote.getGlobal("pdb").db = watchPages;
         main.processPages(watchPages);
       })
-      .catch(function (err) {
+      .catch(function(err) {
         console.error(err);
       });
   });
 }
 
+(async function test() {
+  try {
+    let links = await db.urls
+      .where("timeChecked")
+      .below(Date.now())
+      .toArray()
+      .then(console.log("got it"));
+    console.log("Links: " + links.length);
+  } catch (e) {
+    console.log(e);
+  }
+})();
+
 function setup() {
-  db.transaction("r", db.urls, db.pages, function* () {
+  db.transaction("r", db.urls, db.pages, function*() {
     // Make sure we have something in DB:
     //if ((yield db.urls.where('rssLink').equals('https://www.theregister.co.uk/headlines.atom').count()) === 0) {
 
@@ -182,7 +195,7 @@ function htmlDecode(input) {
   return v;
 }
 
-ipcRenderer.on("stop", function () {
+ipcRenderer.on("stop", function() {
   //console.log("stop handler");
   toggleProgressBar("determinate");
   //var new_tbody = document.createElement("tbody");
@@ -190,35 +203,35 @@ ipcRenderer.on("stop", function () {
   //old_tbody.parentNode.replaceChild(new_tbody, old_tbody);
 });
 
-ipcRenderer.on("blur", function () {
+ipcRenderer.on("blur", function() {
   //console.log("blur handler");
   let scrollPosition = window.scrollY;
   store.set("scrollPosition", scrollPosition);
 });
 
-ipcRenderer.on("focus", function () {
+ipcRenderer.on("focus", function() {
   let y = store.get("scrollPosition", 0);
   window.scrollTo(0, y);
   //console.log("focus handler", y);
 });
 
-ipcRenderer.on("update", function (e, text) {
+ipcRenderer.on("update", function(e, text) {
   //console.log(text);
   document.getElementById("query").placeholder = text;
 });
 
 //not yet functional for watchedPages db
-ipcRenderer.on("import", function (e, dirpath) {
+ipcRenderer.on("import", function(e, dirpath) {
   if (fs.existsSync(dirpath)) {
     //console.log("import " + dirpath);
     let importObj = JSON.parse(fs.readFileSync(dirpath, "utf8"));
 
-    importObj.forEach(function (arrayItem) {
+    importObj.forEach(function(arrayItem) {
       for (const [key, value] of Object.entries(arrayItem)) {
         console.log(`${key} ${value}`);
         if (key === "rssLink") {
           let item = value;
-          db.transaction("rw", db.urls, function* () {
+          db.transaction("rw", db.urls, function*() {
             if (
               (yield db.urls
                 .where("rssLink")
@@ -242,7 +255,7 @@ ipcRenderer.on("import", function (e, dirpath) {
       }
     });
     //
-    db.transaction("r", db.urls, db.pages, function* () {
+    db.transaction("r", db.urls, db.pages, function*() {
       let recentLinks = yield db.urls
         .where("timeChecked")
         .below(Date.now())
@@ -262,10 +275,10 @@ ipcRenderer.on("import", function (e, dirpath) {
 });
 
 //not yet functional for watchedPages db
-ipcRenderer.on("export", function (e, dirpath) {
+ipcRenderer.on("export", function(e, dirpath) {
   console.log(dirpath);
 
-  db.transaction("r", db.urls, db.pages, function* () {
+  db.transaction("r", db.urls, db.pages, function*() {
     let recentLinks = yield db.urls
       .where("timeChecked")
       .below(Date.now())
@@ -275,7 +288,7 @@ ipcRenderer.on("export", function (e, dirpath) {
       dirpath + "/vfdb.json",
       JSON.stringify(recentLinks),
       "utf8",
-      function (err) {
+      function(err) {
         console.log(`file saved at ${dirpath}`);
         dialog.showMessageBox({
           message: `The file vfdb.json has been saved at\n${dirpath}`,
@@ -293,9 +306,9 @@ ipcRenderer.on("export", function (e, dirpath) {
     });
 });
 
-ipcRenderer.on("defaults", function () {
+ipcRenderer.on("defaults", function() {
   console.log("defaults");
-  db.transaction("rw", db.urls, function* () {
+  db.transaction("rw", db.urls, function*() {
     if ((yield db.urls.count()) === 0) {
       let id = yield db.urls.bulkPut([
         {
@@ -365,7 +378,7 @@ function openLink(link, el) {
 }
 
 //build mainWindow table via main.js/getFeed
-ipcRenderer.on("item:add", function (e, item, filter) {
+ipcRenderer.on("item:add", function(e, item, filter) {
   // for (var i = 0; i < table.rows.length; i++) {
   //   //console.log("@", table.rows[i].cells[0].getAttributeNode("data-key"));
   //   let k = table.rows[i].cells[0].getAttribute("data-key");
@@ -429,7 +442,7 @@ ipcRenderer.on("item:add", function (e, item, filter) {
   a.setAttribute("class", sourceKey);
   //a.setAttribute("onclick","shell.openExternal('"+item.revisedLink+"')");
   //a.setAttribute("onclick", "openLink('"+item.revisedLink+"')");
-  a.onmousedown = function () {
+  a.onmousedown = function() {
     openLink(item.revisedLink, a);
   };
   if (item.foundAuthor) {
@@ -493,22 +506,22 @@ ipcRenderer.on("item:add", function (e, item, filter) {
 });
 
 //not used yet
-ipcRenderer.on("refresh", function () {
-  db.transaction("r", db.urls, function* () {
+ipcRenderer.on("refresh", function() {
+  db.transaction("r", db.urls, function*() {
     yield db.urls
-      .toArray(function (feedDB) {
+      .toArray(function(feedDB) {
         console.log(feedDB.length);
         remote.getGlobal("fdb").db = feedDB;
       })
-      .catch(function (err) {
+      .catch(function(err) {
         console.error(err);
       });
   });
 });
 
 //clear db
-ipcRenderer.on("item:dbclear", function () {
-  db.transaction("rw", db.urls, function* () {
+ipcRenderer.on("item:dbclear", function() {
+  db.transaction("rw", db.urls, function*() {
     var deleteCount = yield db.urls
       .where("timeChecked")
       .below(Date.now())
@@ -519,7 +532,7 @@ ipcRenderer.on("item:dbclear", function () {
     console.error(e);
   });
 
-  db.transaction("rw", db.pages, function* () {
+  db.transaction("rw", db.pages, function*() {
     var deleteCount = yield db.pages
       .where("timeChecked")
       .below(Date.now())
@@ -542,12 +555,12 @@ ipcRenderer.on("item:dbclear", function () {
 });
 
 //receive addFeed item from addWindow, via main.js
-ipcRenderer.on("item:addFeed", function (e, item, filter) {
+ipcRenderer.on("item:addFeed", function(e, item, filter) {
   //TODO: error check item for proper RSS format
   console.log("addFeed", filter);
 
   let recentLinks;
-  db.transaction("rw", db.urls, function* () {
+  db.transaction("rw", db.urls, function*() {
     if (
       (yield db.urls
         .where("rssLink")
@@ -586,7 +599,7 @@ ipcRenderer.on("item:addFeed", function (e, item, filter) {
     });
 });
 
-ipcRenderer.on("addAuthor", function (e) {
+ipcRenderer.on("addAuthor", function(e) {
   prompt({
     title: "Watch for Author",
     label: "Author:",
@@ -607,23 +620,23 @@ ipcRenderer.on("addAuthor", function (e) {
 });
 
 //receive addRepo from main.js, via addRepo.js
-ipcRenderer.on("item:addRepo", function (e, page, hash, linkHash, mode, now) {
+ipcRenderer.on("item:addRepo", function(e, page, hash, linkHash, mode, now) {
   //TODO: error check item for proper RSS format
   console.log(
     "addRepo received\n" +
-    page +
-    "\nand\n" +
-    hash +
-    "\nand\n" +
-    linkHash +
-    "\nand\n" +
-    "\nand\n" +
-    mode +
-    "\nand\n" +
-    now
+      page +
+      "\nand\n" +
+      hash +
+      "\nand\n" +
+      linkHash +
+      "\nand\n" +
+      "\nand\n" +
+      mode +
+      "\nand\n" +
+      now
   );
 
-  db.transaction("rw", db.pages, function* () {
+  db.transaction("rw", db.pages, function*() {
     if (
       (yield db.pages
         .where("url")
@@ -663,23 +676,23 @@ ipcRenderer.on("item:addRepo", function (e, page, hash, linkHash, mode, now) {
 });
 
 //receive addPage from addWatchPage.js
-ipcRenderer.on("item:addPage", function (e, page, hash, linkHash, mode, now) {
+ipcRenderer.on("item:addPage", function(e, page, hash, linkHash, mode, now) {
   //TODO: error check item for proper RSS format
   console.log(
     "addPage received\n" +
-    page +
-    "\nand\n" +
-    hash +
-    "\nand\n" +
-    linkHash +
-    "\nand\n" +
-    "\nand\n" +
-    mode +
-    "\nand\n" +
-    now
+      page +
+      "\nand\n" +
+      hash +
+      "\nand\n" +
+      linkHash +
+      "\nand\n" +
+      "\nand\n" +
+      mode +
+      "\nand\n" +
+      now
   );
 
-  db.transaction("rw", db.pages, function* () {
+  db.transaction("rw", db.pages, function*() {
     if (
       (yield db.pages
         .where("url")
@@ -718,8 +731,8 @@ ipcRenderer.on("item:addPage", function (e, page, hash, linkHash, mode, now) {
     });
 });
 
-ipcRenderer.on("item:updatePage", function (e, page, thisHash, linkHash, now) {
-  db.transaction("rw", db.pages, function* () {
+ipcRenderer.on("item:updatePage", function(e, page, thisHash, linkHash, now) {
+  db.transaction("rw", db.pages, function*() {
     yield db.pages
       .where("url")
       .equals(page)
@@ -736,7 +749,7 @@ ipcRenderer.on("item:updatePage", function (e, page, thisHash, linkHash, now) {
 
 //delete item from db
 function deleteItem(feed) {
-  db.transaction("rw", db.urls, function* () {
+  db.transaction("rw", db.urls, function*() {
     var deleteCount = yield db.urls
       .where("rssLink")
       .equals(feed)

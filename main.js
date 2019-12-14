@@ -3,13 +3,13 @@ const electron = require("electron");
 const url = require("url");
 const path = require("path");
 const getUrls = require("get-urls"); //for finding original URLs in Reddit posts
-const assert = require("assert");
+//const assert = require("assert");
 const FeedParser = require("feedparser");
 const request = require("request"); // for fetching the feed
 const crypto = require("crypto");
-//const rootCas = require("ssl-root-cas/latest").create();
+const rootCas = require("ssl-root-cas/latest").create();
 
-//require("https").globalAgent.options.ca = rootCas;
+require("https").globalAgent.options.ca = rootCas;
 
 const moment = require("moment");
 moment().format();
@@ -38,7 +38,7 @@ autoUpdater.logger.transports.file.level = "info";
 log.info("App starting...");
 
 //const dialog = electron.dialog
-let repoList = [{ owner: "octokit", repo: "rest.js" }];
+//let repoList = [{ owner: "octokit", repo: "rest.js" }];
 
 const fs = require("fs");
 
@@ -88,7 +88,9 @@ const octokit = new Octokit({
 let mainWindow;
 let addWindow;
 let feedWindow;
+let pageWindow;
 let addWatchPageWindow;
+let repoWindow;
 
 global.showFeedsList = {
   defaultFeedsList: []
@@ -166,19 +168,19 @@ app.on("ready", function() {
   }
 });
 
-autoUpdater.on("update-not-available", info => {
+autoUpdater.on("update-not-available", () => {
   console.log("update-not-available");
   //mainWindow.webContents.send('updateReady')
 });
 //https://github.com/electron-userland/electron-builder/blob/master/docs/encapsulated%20manual%20update%20via%20menu.js
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
-autoUpdater.on("update-downloaded", info => {
+autoUpdater.on("update-downloaded", () => {
   console.log("updateReady");
   mainWindow.webContents.send("updateReady");
 });
 
 // when receiving a quitAndInstall signal, quit and install the new version ;)
-ipcMain.on("quitAndInstall", (event, arg) => {
+ipcMain.on("quitAndInstall", () => {
   console.log("quitAndInstall");
   autoUpdater.quitAndInstall();
 });
@@ -248,7 +250,7 @@ function createAddWindow() {
       nodeIntegration: true
     },
     width: width / 2,
-    height: 300,
+    height: height / 2,
     title: "Add News List Item"
   });
   //load html
@@ -273,7 +275,7 @@ function createAddWatchPageWindow() {
       nodeIntegration: true
     },
     width: width / 2,
-    height: 400,
+    height: height / 2,
     title: "Add URL"
   });
   //load html
@@ -298,7 +300,7 @@ function createAddRepoWindow() {
       nodeIntegration: true
     },
     width: width / 2,
-    height: 400,
+    height: height / 2,
     title: "Add URL"
   });
   //load html
@@ -323,7 +325,7 @@ function createFeedWindow() {
       nodeIntegration: true
     },
     width: width / 2,
-    height: 400,
+    height: height / 2,
     title: "Feed List"
   });
   //load html
@@ -348,7 +350,7 @@ function createPageWindow() {
       nodeIntegration: true
     },
     width: width / 2,
-    height: 400,
+    height: height / 2,
     title: "Page List"
   });
   //load html
@@ -426,8 +428,8 @@ ipcMain.on("item:addPage", function(e, page, mode) {
         } else {
           //
 
-          $ = cheerio.load(body);
-          links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
+          const $ = cheerio.load(body);
+          let links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
           let blob = "";
           $(links).each(function(i, link) {
             if ($(link).attr("href")) {
@@ -472,7 +474,7 @@ ipcMain.on("item:addPage", function(e, page, mode) {
   addWatchPageWindow.close();
 });
 
-ipcMain.on("reload:mainWindow", function(e) {
+ipcMain.on("reload:mainWindow", function() {
   console.log("reload");
   global.masterList.db = [];
   mainWindow.webContents.reloadIgnoringCache();
@@ -504,7 +506,7 @@ function getRepo(pageObj) {
       repo: repo,
       since: backthen
     })
-    .then(({ data, status, headers }) => {
+    .then(({ data }) => {
       // handle data
       //console.log(data)
 
@@ -597,12 +599,22 @@ function getPage(pageObj) {
       } else {
         console.log(`Checking hash for ${pageObj.url}.`);
         //
-        $ = cheerio.load(body);
-        links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
+        const $ = cheerio.load(body);
+        let links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
         let blob = "";
         $(links).each(function(i, link) {
           if ($(link).attr("href")) {
+            let linkParsed = parse($(link).attr("href"));
+            let pageParsed = parse(options.url);
+
+            let match =
+              linkParsed.domain == pageParsed.domain ? "true" : "false";
+            console.log(pageParsed.domain + " and link matched: " + match);
+            console.log("linkParsed: " + linkParsed.domain);
+            console.log("pageParsed: " + pageParsed.domain);
             console.log("cheerio: " + $(link).attr("href"));
+            console.log("source site: " + options.url);
+
             blob += $(link).attr("href");
           }
         });
@@ -914,9 +926,7 @@ exports.processFeeds = arg => {
     if (arg[i].visible) {
       //TODO: check if online: https://www.npmjs.com/package/is-online
       //get articles from rss feed
-      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function(
-        error
-      ) {
+      getFeed(arg[i].rssLink, global.timeWindow.minutes, flist, function() {
         counter++;
         if (arg.length <= counter) {
           global.activeRequest.status = "inactive";
