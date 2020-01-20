@@ -186,60 +186,71 @@ ipcMain.on("quitAndInstall", () => {
 });
 
 function exportDB() {
-  dialog.showOpenDialog(
-    mainWindow,
-    {
-      properties: ["openDirectory"],
-      buttonLabel: "Export the file 'vfdb.json'",
-      filters: [{ name: "JSON", extensions: ["json"] }]
-    },
-    function(filepath) {
-      if (filepath === undefined) return;
+  console.log("Starting export...");
 
-      let fullpath = filepath + "/vfdb.json";
-      if (fs.existsSync(fullpath)) {
+  dialog
+    .showSaveDialog(mainWindow, {
+      properties: ["openFile", "openDirectory"],
+      filters: [{ name: "JSON", extensions: ["json"] }],
+      buttonLabel: "Export Feeds",
+      defaultPath: app.getPath("downloads") + "/vulture-feeds-data.json"
+    })
+    .then(result => {
+      console.log(result.canceled);
+      console.log(result.filePath);
+      if (result.filePath === undefined || result.canceled) {
+        console.log("No file path defined or cancelled");
+        return;
+      }
+      if (fs.existsSync(result.filePath)) {
         dialog.showMessageBox(
           {
             type: "info",
             buttons: ["Yes", "No"],
-            message: "Are you sure you want to overwrite 'vfdb.json'?"
+            message: "Are you sure you want to overwrite this file?"
           },
           resp => {
             if (resp === 0) {
-              mainWindow.webContents.send("export", filepath);
+              console.log("Exists");
+              mainWindow.webContents.send("export", result.filePath);
             }
           }
         );
       } else {
-        mainWindow.webContents.send("export", filepath);
+        console.log("File doesn't yet exist");
+        mainWindow.webContents.send("export", result.filePath);
       }
-    }
-  );
+    })
+    .catch(err => {
+      console.log(err);
+    });
 }
 
 function importDB() {
-  dialog.showOpenDialog(
-    mainWindow,
-    {
-      properties: ["openDirectory", "openFile"],
-      buttonLabel: "Select the file 'vfdb.json'",
-      filters: [{ name: "JSON", extensions: ["json"] }]
-    },
-    function(filepath) {
-      //todo show error dialog
+  dialog
+    .showOpenDialog(mainWindow, {
+      properties: ["openFile", "openDirectory"],
+      filters: [{ name: "JSON", extensions: ["json"] }],
+      defaultPath: app.getPath("downloads") + "/vulture-feeds-data.json"
+    })
+    .then(result => {
+      console.log(result.canceled);
+      console.log(result.filePath);
+      console.log(result.filePaths);
       if (
-        filepath === undefined ||
-        !fs.existsSync(filepath[0]) ||
-        filepath[0].indexOf("vfdb.json") === -1
+        result.filePaths === undefined ||
+        !fs.existsSync(result.filePaths[0] || result.canceled)
       ) {
+        console.log("No file found");
         return;
       } else {
-        let importFile = filepath[0];
+        let importFile = result.filePaths[0];
         mainWindow.webContents.send("import", importFile);
-        //[ '/Users/tk/tk' ]
       }
-    }
-  );
+    })
+    .catch(err => {
+      console.log(err);
+    });
 }
 
 //handle createAddWindow
@@ -603,8 +614,13 @@ function getPage(pageObj) {
         let links = $("a"); //jquery get all hyperlinks //&& $(link).attr('href').startsWith('http')
         let blob = "";
         $(links).each(function(i, link) {
-          if ($(link).attr("href")) {
-            let linkParsed = parse($(link).attr("href"));
+          if (
+            $(link).attr("href") &&
+            $(link)
+              .attr("href")
+              .startsWith("http")
+          ) {
+            /* let linkParsed = parse($(link).attr("href"));
             let pageParsed = parse(options.url);
 
             let match =
@@ -613,7 +629,7 @@ function getPage(pageObj) {
             console.log("linkParsed: " + linkParsed.domain);
             console.log("pageParsed: " + pageParsed.domain);
             console.log("cheerio: " + $(link).attr("href"));
-            console.log("source site: " + options.url);
+            console.log("source site: " + options.url); */
 
             blob += $(link).attr("href");
           }

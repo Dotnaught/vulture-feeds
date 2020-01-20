@@ -1,15 +1,15 @@
 {
   "name": "vulture-feeds",
   "productName": "vulture-feeds",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A news aggregator for journalists, tuned for finding recent stories and documents.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "build": "build",
-    "publish": "build -p always",
+    "dist": "electron-builder --mac",
+    "build": "electron-builder --mac --windows --linux",
+    "publish": "electron-builder --mac --windows --linux --publish always",
     "distw": "build -mw --x64 --ia32",
     "make-installer": "electron-installer-dmg ./release-builds/vulture-feeds-darwin-x64/vulture-feeds.app vulture-feeds --overwrite"
   },
@@ -19,10 +19,7 @@
     "mac": {
       "category": "public.app-category.news",
       "target": [
-        "pkg",
-        "dmg",
-        "zip",
-        "mas"
+        "dmg"
       ],
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -33,6 +30,7 @@
     },
     "mas": {
       "entitlements": "build/entitlements.mas.plist",
+      "provisioningProfile": "build/Lot_49_Labs_Mac_Distribution.provisionprofile",
       "type": "distribution",
       "category": "public.app-category.news"
     },
@@ -43,9 +41,16 @@
       "target": [
         "AppImage",
         "deb"
-      ]
+      ],
+      "category": "Network"
     }
   },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "Dotnaught"
+    }
+  ],
   "author": "Thomas Claburn",
   "license": "MIT",
   "dependencies": {

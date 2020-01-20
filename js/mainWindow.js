@@ -28,7 +28,7 @@ const Store = require("electron-store");
 const store = new Store();
 const fs = require("fs");
 const version = require("../package").version;
-const dialog = require("electron").remote.dialog;
+const { dialog } = require("electron").remote;
 
 const { parse } = require("tldjs");
 /*
@@ -78,11 +78,13 @@ function setter(val) {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 function displayCancelShow() {
   let cancelButton = document.getElementById("Clear");
   cancelButton.style.visibility = "visible";
 }
 
+// eslint-disable-next-line no-unused-vars
 function displayCancelHide() {
   let cancelButton = document.getElementById("Clear");
   cancelButton.style.visibility = "hidden";
@@ -143,7 +145,7 @@ function checkWatchedPages() {
       });
   });
 }
-
+/*
 (async function test() {
   try {
     let links = await db.urls
@@ -156,7 +158,7 @@ function checkWatchedPages() {
     console.log(e);
   }
 })();
-
+*/
 function setup() {
   db.transaction("r", db.urls, db.pages, function*() {
     // Make sure we have something in DB:
@@ -222,8 +224,9 @@ ipcRenderer.on("update", function(e, text) {
 
 //not yet functional for watchedPages db
 ipcRenderer.on("import", function(e, dirpath) {
+  console.log("Importing...");
   if (fs.existsSync(dirpath)) {
-    //console.log("import " + dirpath);
+    console.log("import " + dirpath);
     let importObj = JSON.parse(fs.readFileSync(dirpath, "utf8"));
 
     importObj.forEach(function(arrayItem) {
@@ -254,7 +257,7 @@ ipcRenderer.on("import", function(e, dirpath) {
         }
       }
     });
-    //
+
     db.transaction("r", db.urls, db.pages, function*() {
       let recentLinks = yield db.urls
         .where("timeChecked")
@@ -263,14 +266,13 @@ ipcRenderer.on("import", function(e, dirpath) {
       remote.getGlobal("fdb").db = recentLinks;
     })
       .then(() => {
-        //do something
+        ipcRenderer.send("reload:mainWindow");
       })
       .catch(e => {
         console.error(e.stack);
       });
-    //
   } else {
-    M.toast({ html: "vfdb.json file not found", displayLength: 4000 });
+    M.toast({ html: "File not found", displayLength: 4000 });
   }
 });
 
@@ -284,19 +286,14 @@ ipcRenderer.on("export", function(e, dirpath) {
       .below(Date.now())
       .toArray();
     remote.getGlobal("fdb").db = recentLinks;
-    fs.writeFile(
-      dirpath + "/vfdb.json",
-      JSON.stringify(recentLinks),
-      "utf8",
-      function(err) {
-        console.log(`file saved at ${dirpath}`);
-        dialog.showMessageBox({
-          message: `The file vfdb.json has been saved at\n${dirpath}`,
-          buttons: ["OK"]
-        });
-        //check if file exists before writing
-      }
-    );
+    fs.writeFile(dirpath, JSON.stringify(recentLinks), "utf8", function(err) {
+      console.log(`file saved at ${dirpath}`);
+      dialog.showMessageBox({
+        message: `The file has been saved at\n${dirpath}`,
+        buttons: ["OK"]
+      });
+      //check if file exists before writing
+    });
   })
     .then(() => {
       //Materialize.toast('vfdb.json file saved', 4000);

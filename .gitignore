@@ -14,9 +14,10 @@ workspace.js
 .npm
 vfdb.json
 .python-version
-embedded.provisionprofile
+*.provisionprofile
 entitlements.mac.plist
 entitlements.mas.plist
+*.p12
 
 
 
