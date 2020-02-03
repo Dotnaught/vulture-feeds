@@ -1,7 +1,7 @@
 {
   "name": "vulture-feeds",
   "productName": "vulture-feeds",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "A news aggregator for journalists, tuned for finding recent stories and documents.",
   "main": "main.js",
   "scripts": {
