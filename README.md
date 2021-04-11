@@ -1,4 +1,4 @@
-# This project has been superceded by [RSSputin] (https://github.com/Dotnaught/rssputin).
+# This project has been superceded by [RSSputin](https://github.com/Dotnaught/rssputin).
 
 # vulture-feeds
 
