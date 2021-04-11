@@ -1,3 +1,5 @@
+# This project has been superceded by RSSputin (https://github.com/Dotnaught/rssputin).
+
 # vulture-feeds
 
 vulture-feeds is an Electron-based RSS/Atom headline aggregator for journalists. It's designed for finding recently published news and source documents; it's not intended for reading articles.
